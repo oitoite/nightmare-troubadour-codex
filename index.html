@@ -109,23 +109,6 @@
   .count{font-size:13px;color:var(--ink-2);}
   .count b{color:#fff;}
 
-  /* result rows */
-  .rows{border:2px solid var(--frame-2);border-radius:8px;overflow:hidden;background:var(--panel-2);}
-  .row{display:flex;gap:12px;padding:10px 12px;border-bottom:1px solid #2a2114;cursor:pointer;align-items:center;}
-  .row:last-child{border-bottom:none;}
-  .row:hover{background:#241d12;}
-  .row .thumb{width:52px;height:52px;flex-shrink:0;object-fit:cover;border-radius:3px;border:1px solid #3a2f1c;background:#16130d;}
-  .row .thumb.ph{display:flex;align-items:center;justify-content:center;font-size:10px;color:#7a6a48;}
-  .row .rmain{flex:1;min-width:0;}
-  .row .ruby{font-size:10.5px;color:var(--ink-3);line-height:1;}
-  .row .rname{font-size:15px;font-weight:700;color:#fff;line-height:1.3;}
-  .row .ren{font-size:11.5px;color:var(--ink-2);}
-  .row .rmeta{display:flex;align-items:center;gap:9px;flex-shrink:0;}
-  .row .rmeta img{width:20px;height:20px;}
-  .row .lvl{font-size:12px;color:#e6c988;white-space:nowrap;}
-  .tag{font-size:10.5px;font-weight:700;color:#fff;padding:2px 7px;border-radius:3px;white-space:nowrap;}
-  .row .stat{font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap;}
-  @media (max-width:560px){ .row .ren{display:none;} .row .stat{display:none;} }
 
   /* ── card grid ── */
   .card-grid {
@@ -144,7 +127,10 @@
     transition: transform .12s, box-shadow .15s;
     position: relative;
   }
-  .card-tile:hover { transform: translateY(-3px); }
+  .card-tile:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.5), 0 0 0 1px var(--tile-glow, var(--line));
+  }
   .tile-img {
     width: 100%;
     aspect-ratio: 59 / 86;
@@ -386,7 +372,7 @@
       <div class="toolbar"><div class="count" id="count"></div></div>
       <div id="status" class="status"><span class="spinner"></span>Opening the database…</div>
       <div id="detail"></div>
-      <div id="rows"></div>
+      <div id="cardGrid" class="card-grid"></div>
     </section>
 
     <section id="tab-mycards" style="display:none;"><div id="mycardsList"></div></section>
@@ -402,6 +388,7 @@
   var ATTRS=["dark","light","earth","water","fire","wind","divine"];
   var CAT_ORDER=["Normal","Effect","Ritual","Fusion","Synchro","Xyz","Pendulum","Link","Toon","Spirit","Union","Gemini","Tuner","Flip"];
   var FRAMEVAR={normal:"--f-normal",effect:"--f-effect",ritual:"--f-ritual",fusion:"--f-fusion",synchro:"--f-synchro",xyz:"--f-xyz",link:"--f-link",spell:"--f-spell",trap:"--f-trap"};
+  var FRAME={normal:"#c9a44b",effect:"#c07a3a",ritual:"#4a74b0",fusion:"#8a5aa8",synchro:"#c0bfbe",xyz:"#555",link:"#3a7a9a",spell:"#1d9e75",trap:"#c2185b"};
   var activeAttrs={},activeRaces={},activeCats={},activeLevels={},typeSel="",mode="name";
 
   function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m];});}
@@ -409,6 +396,7 @@
   function lsSet(k,v){try{LS.setItem(k,JSON.stringify(v));}catch(e){}}
   function attrIcon(a){return "https://www.db.yugioh-card.com/yugiohdb/external/image/parts/attribute/attribute_icon_"+a+".png";}
   function frameColor(c){var v=FRAMEVAR[c&&c.frame]||(c.cardType==="spell"?"--f-spell":c.cardType==="trap"?"--f-trap":"--f-normal");return "var("+v+")";}
+  function frameHex(c){return FRAME[c&&c.frame]||(c.cardType==="spell"?FRAME.spell:c.cardType==="trap"?FRAME.trap:FRAME.normal);}
   function typeLineJa(c){if(c.cardType!=="monster")return (c.cardType==="spell"?"魔法":c.cardType==="trap"?"罠":"")+"カード";var r=c.raceJa||c.race||"",cat=c.categoryJa||c.category||"";return "【"+r+(cat?"／"+cat:"")+"】";}
   function typeLineEn(c){if(c.cardType!=="monster")return (c.cardType||"").charAt(0).toUpperCase()+(c.cardType||"").slice(1)+" Card";return [c.race,c.category].filter(Boolean).join(" / ")+" Monster";}
 
@@ -426,7 +414,7 @@
     buildControls(); document.getElementById("filterPanel").style.display=""; setStatus(""); apply();
   }).catch(function(){
     setStatus("");
-    document.getElementById("rows").innerHTML='<div class="frame"><div class="setup"><h3>Dataset not built yet</h3>This database loads from <code>cards.json</code>. From the project folder run <code>node scrape.mjs</code> to build the full ~1,000-card dataset from Yugipedia + YGOResources, then reload.</div></div>';
+    document.getElementById("cardGrid").innerHTML='<div class="frame"><div class="setup"><h3>Dataset not built yet</h3>This database loads from <code>cards.json</code>. From the project folder run <code>node scrape.mjs</code> to build the full ~1,000-card dataset from Yugipedia + YGOResources, then reload.</div></div>';
   });
 
   function buildControls(){
@@ -513,31 +501,49 @@
       return true;
     });
     document.getElementById("count").innerHTML="<b>"+res.length+"</b> of "+CARDS.length+" cards";
-    renderRows(res);
+    renderGrid(res);
   }
 
-  function renderRows(list){
+  function renderGrid(list) {
     document.getElementById("detail").innerHTML="";
-    var host=document.getElementById("rows");
-    if(!list.length){host.innerHTML='<div class="frame"><div class="empty"><div class="big">No cards found</div><br>Try fewer filters or a shorter search.</div></div>';return;}
-    var box=document.createElement("div");box.className="rows";
-    list.slice(0,400).forEach(function(c){
-      var isMon=c.cardType==="monster";
-      var thumb=c.img?'<img class="thumb" loading="lazy" src="'+esc(c.img)+'" alt="" onerror="this.classList.add(\'ph\');this.removeAttribute(\'src\');this.textContent=\'—\';">':'<div class="thumb ph">—</div>';
-      var meta="";
-      if(isMon){meta+=(c.attribute?'<img src="'+attrIcon(c.attribute)+'" alt="'+esc(c.attribute)+'">':"");meta+=(c.level!=null?'<span class="lvl">★'+c.level+'</span>':"");meta+='<span class="stat">'+(c.atk==null?"?":c.atk)+"/"+(c.def==null?"?":c.def)+'</span>';}
-      else{meta+='<span class="tag" style="background:'+frameColor(c)+'">'+esc((c.cardType||"").toUpperCase())+'</span>';}
-      var r=document.createElement("div");r.className="row";
-      r.innerHTML=thumb+'<div class="rmain">'+(c.reading&&c.reading!==c.ja?'<div class="ruby">'+esc(c.reading)+'</div>':"")+'<div class="rname">'+esc(c.ja||c.en)+'</div><div class="ren">'+esc(c.en)+'</div></div><div class="rmeta">'+meta+'</div>';
-      r.addEventListener("click",function(){showDetail(c);});
-      box.appendChild(r);
+    var host = document.getElementById("cardGrid");
+    if (!list.length) {
+      host.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="big">No cards found</div><br>Try fewer filters or a shorter search.</div>';
+      return;
+    }
+    host.innerHTML = "";
+    list.slice(0, 400).forEach(function (c) {
+      var fc = frameHex(c);
+      var imgHtml = c.img
+        ? '<img class="tile-img" loading="lazy" src="' + esc(c.img) + '" alt="' + esc(c.en) + '" onerror="this.className=\'tile-img ph\';this.removeAttribute(\'src\');this.textContent=\'No image\';">'
+        : '<div class="tile-img ph">No image</div>';
+      var tile = document.createElement("div");
+      tile.className = "card-tile";
+      tile.style.borderColor = fc;
+      tile.style.setProperty("--tile-glow", fc);
+      tile.innerHTML =
+        imgHtml +
+        '<div class="tile-en-overlay">' + esc(c.en || "") + '</div>' +
+        '<div class="tile-body">' +
+          (c.reading && c.reading !== c.ja
+            ? '<span class="tile-ruby">' + esc(c.reading) + '</span>'
+            : '') +
+          '<div class="tile-jp">' + esc(c.ja || c.en || "—") + '</div>' +
+        '</div>';
+      tile.addEventListener("click", function () { showDetail(c); });
+      host.appendChild(tile);
     });
-    host.innerHTML="";host.appendChild(box);
-    if(list.length>400){var m=document.createElement("div");m.className="hint";m.style.marginTop="10px";m.textContent="Showing first 400 of "+list.length+". Narrow your search to see more.";host.appendChild(m);}
+    if (list.length > 400) {
+      var hint = document.createElement("div");
+      hint.className = "hint";
+      hint.style.gridColumn = "1 / -1";
+      hint.textContent = "Showing first 400 of " + list.length + ". Narrow your search to see more.";
+      host.appendChild(hint);
+    }
   }
 
   function showDetail(c){
-    var host=document.getElementById("detail"),rows=document.getElementById("rows");
+    var host=document.getElementById("detail"),rows=document.getElementById("cardGrid");
     rows.style.display="none";
     var isMon=c.cardType==="monster";
     var art=c.img?'<img class="d-art" src="'+esc(c.img)+'" alt="'+esc(c.en)+'" onerror="this.outerHTML=\'<div class=&quot;d-art ph&quot;>No image</div>\'">':'<div class="d-art ph">No image</div>';
