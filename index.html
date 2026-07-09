@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nightmare Troubadour — Card Codex</title>
+<meta name="description" content="Japanese OCG card database for Yu-Gi-Oh! Nightmare Troubadour (DS, JP)." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --obsidian:#0d0b08; --obsidian-2:#16130d; --panel:#1d1810; --panel-2:#241d12;
+    --gold:#c8a45a; --gold-bright:#e6c988; --gold-dim:#8a713c;
+    --ink:#ede4d0; --ink-dim:#b6a684; --line:#3a2f1c;
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; padding:0; }
+  body {
+    background:
+      radial-gradient(circle at 50% -10%, #241d12 0%, rgba(36,29,18,0) 55%),
+      radial-gradient(circle at 50% 120%, #1a150d 0%, rgba(26,21,13,0) 60%),
+      var(--obsidian);
+    color:var(--ink); font-family:"Noto Sans JP",system-ui,-apple-system,sans-serif;
+    min-height:100vh; letter-spacing:.01em;
+  }
+  .wrap { max-width:1000px; margin:0 auto; padding:26px 18px 80px; }
+  header.masthead { text-align:center; margin-bottom:18px; }
+  .crest { font-family:"Cinzel",serif; font-weight:700; font-size:clamp(22px,4.5vw,38px); color:var(--gold-bright); letter-spacing:.06em; text-shadow:0 2px 14px rgba(200,164,90,.25); margin:0; }
+  .crest .jp { font-family:"Noto Sans JP",serif; }
+  .subtitle { font-family:"Cinzel",serif; font-size:11.5px; letter-spacing:.3em; text-transform:uppercase; color:var(--gold-dim); margin-top:7px; }
+  .rule { height:1px; margin:14px auto 0; max-width:440px; background:linear-gradient(90deg,transparent,var(--gold-dim),transparent); }
+
+  .tabs { display:flex; gap:8px; justify-content:center; margin:20px 0 16px; flex-wrap:wrap; }
+  .tab { font-family:"Cinzel",serif; font-size:13px; letter-spacing:.1em; background:var(--panel); color:var(--ink-dim); border:1px solid var(--line); border-radius:6px; padding:9px 18px; cursor:pointer; transition:all .15s; }
+  .tab:hover { color:var(--gold-bright); border-color:var(--gold-dim); }
+  .tab.active { color:var(--obsidian); background:linear-gradient(180deg,var(--gold-bright),var(--gold)); border-color:var(--gold); font-weight:600; }
+
+  .search-row { display:flex; gap:10px; margin-bottom:12px; }
+  .search-input { flex:1; background:var(--obsidian-2); border:1px solid var(--line); border-radius:8px; color:var(--ink); font-size:16px; padding:13px 15px; font-family:"Noto Sans JP",sans-serif; outline:none; transition:border-color .15s,box-shadow .15s; }
+  .search-input::placeholder { color:#6f6146; }
+  .search-input:focus { border-color:var(--gold-dim); box-shadow:0 0 0 3px rgba(200,164,90,.12); }
+
+  .filters { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:14px; }
+  .frow { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+  .fgroup label { display:block; font-family:"Cinzel",serif; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-dim); margin-bottom:5px; }
+  select, .num { width:100%; background:var(--obsidian-2); border:1px solid var(--line); border-radius:7px; color:var(--ink); padding:8px 9px; font-family:inherit; font-size:13.5px; outline:none; }
+  select:focus,.num:focus { border-color:var(--gold-dim); }
+  .range { display:flex; align-items:center; gap:6px; }
+  .range .num { width:100%; text-align:center; }
+  .range span { color:var(--gold-dim); font-size:12px; }
+  .attrs { display:flex; flex-wrap:wrap; gap:5px; }
+  .attr-btn { font-size:11px; padding:5px 9px; border-radius:14px; border:1px solid var(--line); background:var(--obsidian-2); color:var(--ink-dim); cursor:pointer; font-weight:500; }
+  .attr-btn.on { color:#1a1408; border-color:transparent; }
+  .attr-btn.on.dark{background:#b39ddb} .attr-btn.on.light{background:#ffe082} .attr-btn.on.water{background:#81d4fa}
+  .attr-btn.on.fire{background:#ef9a9a} .attr-btn.on.earth{background:#d7cca3} .attr-btn.on.wind{background:#a5d6a7} .attr-btn.on.divine{background:#ffcc80}
+  .filter-foot { display:flex; align-items:center; justify-content:space-between; margin-top:12px; gap:10px; flex-wrap:wrap; }
+  .count { font-size:12.5px; color:var(--ink-dim); }
+  .count b { color:var(--gold-bright); }
+  .btn { font-family:"Cinzel",serif; letter-spacing:.06em; font-size:12px; background:transparent; color:var(--gold); border:1px solid var(--gold-dim); border-radius:7px; padding:7px 14px; cursor:pointer; }
+  .btn:hover { background:rgba(200,164,90,.08); }
+  .btn.gold { background:linear-gradient(180deg,var(--gold-bright),var(--gold)); color:var(--obsidian); border:none; font-weight:600; }
+
+  .pack-jp { color:var(--gold); font-weight:500; }
+
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+  .tile { background:var(--panel); border:1px solid var(--line); border-radius:9px; overflow:hidden; cursor:pointer; transition:transform .12s,border-color .12s; display:flex; flex-direction:column; }
+  .tile:hover { transform:translateY(-2px); border-color:var(--gold-dim); }
+  .tile .thumb { width:100%; aspect-ratio:1/1; object-fit:cover; background:var(--obsidian-2); border-bottom:1px solid var(--line); }
+  .tile .thumb.ph { display:flex; align-items:center; justify-content:center; color:var(--gold-dim); font-family:"Cinzel",serif; font-size:11px; }
+  .tile .tbody { padding:8px 9px 10px; }
+  .tile .tjp { font-size:13px; color:var(--ink); font-weight:500; line-height:1.25; }
+  .tile .ten { font-size:11px; color:var(--ink-dim); margin-top:2px; font-family:"Cinzel",serif; }
+  .tile .tmeta { font-size:10.5px; color:var(--gold-dim); margin-top:4px; }
+
+  .status { text-align:center; color:var(--ink-dim); font-size:14px; padding:40px 12px; }
+  .status.err { color:#d98c7a; }
+  .spinner { display:inline-block; width:18px; height:18px; border:2px solid var(--gold-dim); border-top-color:transparent; border-radius:50%; animation:spin .8s linear infinite; vertical-align:-4px; margin-right:8px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .setup { max-width:620px; margin:20px auto; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px 24px; line-height:1.7; font-size:14px; }
+  .setup h3 { font-family:"Cinzel",serif; color:var(--gold-bright); margin:0 0 10px; }
+  .setup code { background:var(--obsidian-2); border:1px solid var(--line); border-radius:5px; padding:2px 7px; color:var(--gold-bright); font-size:13px; }
+
+  /* card frame (detail) */
+  .cardframe { --frame:var(--gold); background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(0,0,0,.12)),var(--frame); border-radius:16px; padding:10px; box-shadow:0 12px 44px rgba(0,0,0,.55),inset 0 0 0 2px rgba(255,255,255,.14),inset 0 0 0 4px rgba(0,0,0,.18); margin:0 auto 14px; max-width:560px; }
+  .cf-inner { background:var(--panel-2); border-radius:10px; padding:16px 16px 18px; }
+  .cf-namebar { display:flex; align-items:flex-start; gap:10px; }
+  .cf-name { flex:1; font-size:23px; line-height:1.15; font-weight:700; color:var(--gold-bright); }
+  .cf-reading { font-size:12.5px; color:var(--ink-dim); margin:3px 0 0; }
+  .cf-en { font-family:"Cinzel",serif; font-size:15px; color:var(--ink); margin-top:2px; }
+  .cf-attr { flex-shrink:0; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#1a1408; font-family:"Cinzel",serif; box-shadow:inset 0 0 0 2px rgba(0,0,0,.2); }
+  .cf-attr.dark{background:#b39ddb} .cf-attr.light{background:#ffe082} .cf-attr.water{background:#81d4fa} .cf-attr.fire{background:#ef9a9a} .cf-attr.earth{background:#d7cca3} .cf-attr.wind{background:#a5d6a7} .cf-attr.divine{background:#ffcc80}
+  .cf-stars { margin:12px 0 10px; color:#f2c14e; font-size:15px; letter-spacing:2px; }
+  .cf-art { display:block; margin:0 auto 14px; width:64%; max-width:300px; border:3px solid rgba(0,0,0,.35); border-radius:4px; background:var(--obsidian-2); }
+  .cf-typeline { font-family:"Cinzel",serif; font-size:12px; letter-spacing:.05em; color:var(--gold); text-transform:uppercase; font-weight:600; border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:8px 0; margin-bottom:12px; }
+  .efflabel { font-family:"Cinzel",serif; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold-dim); margin-bottom:5px; }
+  .efftext { background:var(--obsidian-2); border:1px solid var(--line); border-radius:8px; padding:11px 13px; font-size:14px; line-height:1.65; color:var(--ink); }
+  .efftext.en { font-family:"Cinzel",serif; font-size:13px; color:var(--ink-dim); }
+  .eff-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:620px){ .eff-grid{grid-template-columns:1fr} }
+  .cf-atkdef { display:flex; justify-content:flex-end; gap:18px; margin-top:14px; font-family:"Cinzel",serif; font-size:16px; color:var(--gold-bright); font-weight:600; border-top:1px solid var(--line); padding-top:12px; }
+  .cf-atkdef small { color:var(--gold-dim); font-size:11px; letter-spacing:.1em; margin-right:4px; }
+  .cf-packs { margin-top:14px; }
+  .pchip { display:inline-block; font-size:11.5px; background:var(--obsidian-2); border:1px solid var(--line); border-radius:14px; padding:4px 11px; margin:3px 4px 0 0; color:var(--ink-dim); cursor:pointer; }
+  .pchip:hover { border-color:var(--gold-dim); color:var(--gold-bright); }
+  .pchip b { color:var(--gold); font-weight:500; }
+  .card-actions { display:flex; gap:8px; margin:12px auto 0; max-width:560px; flex-wrap:wrap; justify-content:center; }
+
+  .manual-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px; }
+  @media (max-width:620px){ .manual-grid{grid-template-columns:1fr} }
+  .manual-grid input,.manual-grid textarea { background:var(--obsidian-2); border:1px solid var(--line); border-radius:8px; color:var(--ink); padding:11px 13px; font-family:inherit; font-size:14px; outline:none; }
+  .manual-grid textarea { grid-column:1/-1; min-height:60px; resize:vertical; }
+  .manual-grid label { font-size:11px; color:var(--gold-dim); font-family:"Cinzel",serif; letter-spacing:.12em; text-transform:uppercase; display:block; margin-bottom:4px; }
+  .field { display:flex; flex-direction:column; }
+  .saved-note textarea { width:100%; margin-top:6px; background:var(--obsidian-2); border:1px solid var(--line); border-radius:8px; color:var(--ink); padding:10px; font-family:inherit; font-size:13.5px; resize:vertical; min-height:48px; }
+  .empty { text-align:center; color:var(--ink-dim); padding:40px 16px; }
+  .empty .big { font-size:15px; color:var(--gold-dim); font-family:"Cinzel",serif; letter-spacing:.1em; }
+  .hint { font-size:12.5px; color:var(--ink-dim); margin:2px 2px 14px; }
+  footer.foot { text-align:center; margin-top:40px; font-size:11.5px; color:#6f6146; line-height:1.7; }
+  footer.foot a { color:var(--gold-dim); text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <h1 class="crest"><span class="jp">遊戯王</span> Card Codex</h1>
+    <div class="subtitle">Nightmare Troubadour · Japanese OCG Database</div>
+    <div class="rule"></div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="browse">Search</button>
+    <button class="tab" data-tab="mycards">My Cards</button>
+    <button class="tab" data-tab="add">Add by Hand</button>
+  </nav>
+
+  <section id="tab-browse">
+    <div class="search-row">
+      <input id="q" class="search-input" placeholder="Search cards or packs — 日本語 or English…" autocomplete="off" />
+    </div>
+    <div class="filters" id="filters" style="display:none;">
+      <div class="frow">
+        <div class="fgroup">
+          <label>Pack · パック</label>
+          <select id="f-pack"><option value="">All packs</option></select>
+        </div>
+        <div class="fgroup">
+          <label>Card type</label>
+          <select id="f-type"><option value="">All</option><option value="monster">Monster</option><option value="spell">Spell</option><option value="trap">Trap</option></select>
+        </div>
+        <div class="fgroup">
+          <label>Monster type</label>
+          <select id="f-race"><option value="">All</option></select>
+        </div>
+        <div class="fgroup">
+          <label>Level ★</label>
+          <div class="range"><input class="num" id="f-lvl-min" type="number" min="1" max="12" placeholder="min" /><span>–</span><input class="num" id="f-lvl-max" type="number" min="1" max="12" placeholder="max" /></div>
+        </div>
+        <div class="fgroup">
+          <label>ATK</label>
+          <div class="range"><input class="num" id="f-atk-min" type="number" min="0" placeholder="min" /><span>–</span><input class="num" id="f-atk-max" type="number" min="0" placeholder="max" /></div>
+        </div>
+        <div class="fgroup">
+          <label>DEF</label>
+          <div class="range"><input class="num" id="f-def-min" type="number" min="0" placeholder="min" /><span>–</span><input class="num" id="f-def-max" type="number" min="0" placeholder="max" /></div>
+        </div>
+        <div class="fgroup" style="grid-column:1/-1;">
+          <label>Attribute</label>
+          <div class="attrs" id="f-attrs"></div>
+        </div>
+      </div>
+      <div class="filter-foot">
+        <div class="count" id="count"></div>
+        <button class="btn" id="reset">Reset filters</button>
+      </div>
+    </div>
+    <div id="status" class="status"><span class="spinner"></span>Opening the codex…</div>
+    <div id="detail"></div>
+    <div id="grid" class="grid"></div>
+  </section>
+
+  <section id="tab-mycards" style="display:none;"><div id="mycardsList"></div></section>
+
+  <section id="tab-add" style="display:none;">
+    <div class="hint">Record a card the codex doesn't have. Stored only in this browser.</div>
+    <div class="manual-grid">
+      <div class="field"><label>Japanese name</label><input id="m_jp" placeholder="例：青眼の白龍" /></div>
+      <div class="field"><label>Reading (kana)</label><input id="m_read" placeholder="ブルーアイズ・ホワイト・ドラゴン" /></div>
+      <div class="field"><label>English name</label><input id="m_en" placeholder="Blue-Eyes White Dragon" /></div>
+      <div class="field"><label>Type / ATK / DEF</label><input id="m_type" placeholder="Dragon · 3000 / 2500" /></div>
+      <textarea id="m_note" placeholder="Effect, notes, where you saw it…"></textarea>
+    </div>
+    <div class="card-actions"><button class="btn gold" id="m_save">Save to My Cards</button></div>
+  </section>
+
+  <footer class="foot">
+    Cards &amp; art: <a href="https://yugipedia.com" target="_blank" rel="noopener">Yugipedia</a> · data: <a href="https://db.ygoresources.com" target="_blank" rel="noopener">YGOResources</a>.<br />
+    A companion for the JP DS release of <em>Yu-Gi-Oh! Duel Monsters: Nightmare Troubadour</em>.
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var LS = window.localStorage;
+  var CARDS = [], PACKS = [], PACKJA = {}, RACES = [];
+  var ATTRS = ["dark","light","water","fire","earth","wind","divine"];
+  var activeAttrs = {};
+  var FRAME = { normal:"#caa54e", effect:"#b0632c", ritual:"#4a74b0", fusion:"#7c4f9e", synchro:"#d9d4c9", xyz:"#2c2c2c", link:"#245a7a", pendulum:"#3f8f7a", spell:"#1d9e75", trap:"#c2185b" };
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m];}); }
+  function lsGet(k,f){ try{var v=LS.getItem(k);return v==null?f:JSON.parse(v);}catch(e){return f;} }
+  function lsSet(k,v){ try{LS.setItem(k,JSON.stringify(v));}catch(e){} }
+  function hasJP(s){ return /[぀-ヿ㐀-鿿豈-﫿ｦ-ﾟ]/.test(s); }
+
+  // ---------- load dataset ----------
+  Promise.all([
+    fetch("cards.json").then(function(r){ if(!r.ok) throw new Error("no cards.json"); return r.json(); }),
+    fetch("packs.json").then(function(r){ return r.ok ? r.json() : { packs: [] }; }).catch(function(){ return { packs: [] }; })
+  ]).then(function(res){
+    CARDS = res[0].cards || [];
+    PACKS = (res[1].packs) || [];
+    PACKS.forEach(function(p){ PACKJA[p.name] = p; });
+    // derive races + packs list from cards if packs.json is thin
+    var raceSet = {}, packSet = {};
+    CARDS.forEach(function(c){ if(c.race) raceSet[c.race]=1; (c.packs||[]).forEach(function(p){ packSet[p.pack]=1; }); });
+    RACES = Object.keys(raceSet).sort();
+    if(!PACKS.length) PACKS = Object.keys(packSet).sort().map(function(n){ return { name:n }; });
+    buildControls();
+    document.getElementById("filters").style.display = "";
+    setStatus("");
+    apply();
+  }).catch(function(){
+    setStatus("");
+    document.getElementById("grid").innerHTML =
+      '<div class="setup"><h3>Dataset not built yet</h3>' +
+      'This database loads from <code>cards.json</code>, which is generated by the included scraper. ' +
+      'From the project folder, run:<br><br><code>node scrape.mjs</code><br><br>' +
+      'That builds <code>cards.json</code> and <code>packs.json</code> from Yugipedia + YGOResources ' +
+      '(the game’s 23 packs, ~1,000 Japanese OCG cards). Reload this page afterward. ' +
+      'Until then, the <b>Add by Hand</b> and <b>My Cards</b> tabs still work.</div>';
+  });
+
+  function buildControls() {
+    var ps = document.getElementById("f-pack");
+    PACKS.forEach(function(p){
+      var o = document.createElement("option");
+      o.value = p.name;
+      o.textContent = p.ja ? (p.name + " — " + p.ja) : p.name;
+      ps.appendChild(o);
+    });
+    var rs = document.getElementById("f-race");
+    RACES.forEach(function(r){ var o=document.createElement("option"); o.value=r; o.textContent=r; rs.appendChild(o); });
+    var af = document.getElementById("f-attrs");
+    ATTRS.forEach(function(a){
+      var b = document.createElement("button");
+      b.className = "attr-btn " + a; b.textContent = a.toUpperCase(); b.dataset.attr = a;
+      b.addEventListener("click", function(){ if(activeAttrs[a]){delete activeAttrs[a]; b.classList.remove("on");} else {activeAttrs[a]=1; b.classList.add("on");} apply(); });
+      af.appendChild(b);
+    });
+    ["f-pack","f-type","f-race"].forEach(function(id){ document.getElementById(id).addEventListener("change", apply); });
+    ["f-lvl-min","f-lvl-max","f-atk-min","f-atk-max","f-def-min","f-def-max"].forEach(function(id){ document.getElementById(id).addEventListener("input", debounced); });
+    document.getElementById("reset").addEventListener("click", resetFilters);
+  }
+
+  var dbt;
+  function debounced(){ clearTimeout(dbt); dbt = setTimeout(apply, 250); }
+
+  function num(id){ var v = document.getElementById(id).value.trim(); return v===""?null:parseInt(v,10); }
+  function matchPacks(query){
+    // returns set of pack names matching a JP/EN/romaji query
+    var q = query.toLowerCase(), out = {};
+    PACKS.forEach(function(p){
+      if ((p.name && p.name.toLowerCase().indexOf(q)>=0) || (p.ja && p.ja.indexOf(query)>=0) || (p.romaji && p.romaji.toLowerCase().indexOf(q)>=0)) out[p.name]=1;
+    });
+    return out;
+  }
+
+  function apply() {
+    var q = document.getElementById("q").value.trim();
+    var pack = document.getElementById("f-pack").value;
+    var type = document.getElementById("f-type").value;
+    var race = document.getElementById("f-race").value;
+    var lmin=num("f-lvl-min"), lmax=num("f-lvl-max");
+    var amin=num("f-atk-min"), amax=num("f-atk-max");
+    var dmin=num("f-def-min"), dmax=num("f-def-max");
+    var attrs = Object.keys(activeAttrs);
+    var packMatch = q ? matchPacks(q) : null;
+    var qLower = q.toLowerCase();
+
+    var res = CARDS.filter(function(c){
+      if (pack && !(c.packs||[]).some(function(p){return p.pack===pack;})) return false;
+      if (type && c.cardType!==type) return false;
+      if (race && c.race!==race) return false;
+      if (attrs.length && (!c.attribute || attrs.indexOf(c.attribute)<0)) return false;
+      if (lmin!=null && (c.level==null || c.level<lmin)) return false;
+      if (lmax!=null && (c.level==null || c.level>lmax)) return false;
+      if (amin!=null && (c.atk==null || c.atk<amin)) return false;
+      if (amax!=null && (c.atk==null || c.atk>amax)) return false;
+      if (dmin!=null && (c.def==null || c.def<dmin)) return false;
+      if (dmax!=null && (c.def==null || c.def>dmax)) return false;
+      if (q) {
+        var inCard = (c.ja && c.ja.indexOf(q)>=0) || (c.reading && c.reading.indexOf(q)>=0) || (c.en && c.en.toLowerCase().indexOf(qLower)>=0);
+        var inPack = (c.packs||[]).some(function(p){ return packMatch[p.pack]; });
+        if (!inCard && !inPack) return false;
+      }
+      return true;
+    });
+    document.getElementById("count").innerHTML = "<b>" + res.length + "</b> of " + CARDS.length + " cards";
+    renderGrid(res);
+  }
+
+  function resetFilters(){
+    ["f-pack","f-type","f-race"].forEach(function(id){ document.getElementById(id).value=""; });
+    ["f-lvl-min","f-lvl-max","f-atk-min","f-atk-max","f-def-min","f-def-max"].forEach(function(id){ document.getElementById(id).value=""; });
+    activeAttrs = {}; document.querySelectorAll(".attr-btn").forEach(function(b){ b.classList.remove("on"); });
+    document.getElementById("q").value=""; apply();
+  }
+
+  function renderGrid(list){
+    var detail = document.getElementById("detail"); detail.innerHTML = "";
+    var g = document.getElementById("grid");
+    if(!list.length){ g.innerHTML = '<div class="empty"><div class="big">No cards found</div><br>Try fewer filters or a shorter search.</div>'; return; }
+    g.innerHTML = "";
+    list.slice(0, 300).forEach(function(c){
+      var t = document.createElement("div"); t.className = "tile";
+      var meta = c.cardType==="monster" ? ((c.race||"") + (c.level?" · ★"+c.level:"")) : ((c.cardType||"").charAt(0).toUpperCase()+(c.cardType||"").slice(1)+" Card");
+      var thumb = c.img ? ('<img class="thumb" loading="lazy" src="'+esc(c.img)+'" alt="'+esc(c.en)+'" onerror="this.classList.add(\'ph\');this.removeAttribute(\'src\');this.textContent=\'No image\';">')
+        : '<div class="thumb ph">No image</div>';
+      t.innerHTML = thumb + '<div class="tbody"><div class="tjp">'+esc(c.ja||c.en)+'</div><div class="ten">'+esc(c.en)+'</div><div class="tmeta">'+esc(meta)+'</div></div>';
+      t.addEventListener("click", function(){ showDetail(c); });
+      g.appendChild(t);
+    });
+    if(list.length>300){ var m=document.createElement("div"); m.className="hint"; m.style.gridColumn="1/-1"; m.textContent="Showing first 300 of "+list.length+". Narrow your search to see more."; g.appendChild(m); }
+  }
+
+  function showDetail(c){
+    var detail = document.getElementById("detail"), grid = document.getElementById("grid");
+    grid.style.display="none";
+    var isMon = c.cardType==="monster";
+    var frameCol = (c.frame && FRAME[c.frame]) ? FRAME[c.frame] : (c.cardType==="spell"?FRAME.spell:c.cardType==="trap"?FRAME.trap:FRAME.normal);
+    var tline = isMon ? [c.race, c.category].filter(Boolean).join(" / ") + " Monster" : ((c.cardType||"").charAt(0).toUpperCase()+(c.cardType||"").slice(1)+" Card");
+    var stars = (isMon && c.level>0) ? new Array(c.level+1).join("★") : "";
+    var attrBadge = (isMon && c.attribute) ? '<div class="cf-attr '+esc(c.attribute)+'">'+esc(c.attribute.slice(0,4).toUpperCase())+'</div>' : "";
+    var art = c.img ? '<img class="cf-art" src="'+esc(c.img)+'" alt="'+esc(c.en)+'" onerror="this.style.display=\'none\'">' : "";
+    var eff = (c.jpEff||c.enEff) ? ('<div class="eff-grid">'+
+        (c.jpEff?'<div><div class="efflabel">効果 · Japanese</div><div class="efftext">'+esc(c.jpEff)+'</div></div>':"")+
+        (c.enEff?'<div><div class="efflabel">Effect · English</div><div class="efftext en">'+esc(c.enEff)+'</div></div>':"")+'</div>') : "";
+    var atkdef = (isMon && (c.atk!=null||c.def!=null)) ? ('<div class="cf-atkdef"><span><small>ATK</small>'+(c.atk==null?"?":c.atk)+'</span><span><small>DEF</small>'+(c.def==null?"?":c.def)+'</span></div>') : "";
+    var packs = (c.packs||[]).map(function(p){ var ja=PACKJA[p.pack]&&PACKJA[p.pack].ja; return '<span class="pchip" data-pack="'+esc(p.pack)+'">'+esc(p.pack)+(ja?' <b>'+esc(ja)+'</b>':"")+' · '+esc(p.rarity)+'</span>'; }).join("");
+
+    detail.innerHTML =
+      '<div class="cardframe" style="--frame:'+frameCol+'"><div class="cf-inner">'+
+        '<div class="cf-namebar"><div style="flex:1">'+
+          '<div class="cf-name">'+esc(c.ja||c.en||"—")+'</div>'+
+          (c.reading&&c.reading!==c.ja?'<div class="cf-reading">'+esc(c.reading)+'</div>':"")+
+          (c.en?'<div class="cf-en">'+esc(c.en)+'</div>':"")+
+        '</div>'+attrBadge+'</div>'+
+        (stars?'<div class="cf-stars">'+stars+'</div>':'<div style="height:6px"></div>')+
+        art+
+        (tline?'<div class="cf-typeline">'+esc(tline)+'</div>':"")+
+        eff+atkdef+
+        (packs?'<div class="cf-packs"><div class="efflabel">In packs · 収録パック</div>'+packs+'</div>':"")+
+      '</div></div>'+
+      '<div class="card-actions"><button class="btn gold" id="saveBtn">✦ Save to My Cards</button><button class="btn" id="backBtn">Back</button></div>';
+
+    document.getElementById("backBtn").addEventListener("click", function(){ detail.innerHTML=""; grid.style.display=""; });
+    var sb = document.getElementById("saveBtn");
+    sb.addEventListener("click", function(){ saveCard(c); sb.textContent="✓ Saved"; sb.disabled=true; });
+    if(isSaved(c.id)){ sb.textContent="✓ In My Cards"; sb.disabled=true; }
+    detail.querySelectorAll(".pchip").forEach(function(ch){ ch.addEventListener("click", function(){ document.getElementById("f-pack").value = ch.dataset.pack; detail.innerHTML=""; grid.style.display=""; apply(); window.scrollTo(0,0); }); });
+    window.scrollTo({ top:0, behavior:"smooth" });
+  }
+
+  // ---------- My Cards ----------
+  function myCards(){ return lsGet("nt-cards-v2", []); }
+  function isSaved(id){ return id!=null && myCards().some(function(c){return c.id===id;}); }
+  function saveCard(c){ var l=myCards(); if(c.id!=null && l.some(function(x){return x.id===c.id;})) return; var copy=JSON.parse(JSON.stringify(c)); copy.savedAt=Date.now(); l.unshift(copy); lsSet("nt-cards-v2", l); }
+  function removeCard(i){ var l=myCards(); l.splice(i,1); lsSet("nt-cards-v2", l); renderMyCards(); }
+  function updateNote(i,t){ var l=myCards(); if(l[i]){ l[i].userNote=t; lsSet("nt-cards-v2", l);} }
+
+  function renderMyCards(){
+    var host=document.getElementById("mycardsList"), list=myCards();
+    if(!list.length){ host.innerHTML='<div class="empty"><div class="big">The vault is empty</div><br>Save cards from Search, or add them by hand as you play.</div>'; return; }
+    host.innerHTML="";
+    list.forEach(function(c,i){
+      var isMon=c.cardType==="monster";
+      var frameCol=(c.frame&&FRAME[c.frame])?FRAME[c.frame]:"var(--gold)";
+      var stars=(isMon&&c.level>0)?new Array(c.level+1).join("★"):"";
+      var tline=c.typeLine || (isMon?[c.race,c.category].filter(Boolean).join(" / ")+" Monster":"");
+      var art=c.img?'<img class="cf-art" src="'+esc(c.img)+'" onerror="this.style.display=\'none\'">':"";
+      var eff=(c.jpEff||c.enEff)?('<div class="eff-grid">'+(c.jpEff?'<div><div class="efflabel">効果</div><div class="efftext">'+esc(c.jpEff)+'</div></div>':"")+(c.enEff?'<div><div class="efflabel">Effect</div><div class="efftext en">'+esc(c.enEff)+'</div></div>':"")+'</div>'):(c.note?'<div><div class="efflabel">Notes</div><div class="efftext">'+esc(c.note)+'</div></div>':"");
+      var atkdef=(isMon&&(c.atk!=null||c.def!=null))?('<div class="cf-atkdef"><span><small>ATK</small>'+(c.atk==null?"?":c.atk)+'</span><span><small>DEF</small>'+(c.def==null?"?":c.def)+'</span></div>'):"";
+      var d=document.createElement("div"); d.className="cardframe"; d.style.setProperty("--frame",frameCol); d.style.maxWidth="560px";
+      d.innerHTML='<div class="cf-inner"><div class="cf-namebar"><div style="flex:1"><div class="cf-name">'+esc(c.ja||c.en||"—")+'</div>'+
+        (c.reading&&c.reading!==c.ja?'<div class="cf-reading">'+esc(c.reading)+'</div>':"")+(c.en?'<div class="cf-en">'+esc(c.en)+'</div>':"")+'</div></div>'+
+        (stars?'<div class="cf-stars">'+stars+'</div>':'<div style="height:6px"></div>')+art+(tline?'<div class="cf-typeline">'+esc(tline)+'</div>':"")+eff+atkdef+
+        '<div class="saved-note"><div class="efflabel" style="margin-top:12px">My note</div><textarea data-note="'+i+'" placeholder="Add your own note…">'+esc(c.userNote||"")+'</textarea></div>'+
+        '<div style="margin-top:10px"><button class="btn" data-del="'+i+'">Remove</button></div></div>';
+      host.appendChild(d);
+    });
+    host.querySelectorAll("[data-del]").forEach(function(b){ b.addEventListener("click",function(){ removeCard(parseInt(b.dataset.del,10)); }); });
+    host.querySelectorAll("[data-note]").forEach(function(t){ t.addEventListener("change",function(){ updateNote(parseInt(t.dataset.note,10), t.value); }); });
+  }
+
+  function manualSave(){
+    var jp=v("m_jp"),read=v("m_read"),en=v("m_en"),type=v("m_type"),note=v("m_note");
+    if(!jp&&!en&&!note) return;
+    saveCard({ id:null, ja:jp, reading:read, en:en, typeLine:type, note:note });
+    ["m_jp","m_read","m_en","m_type","m_note"].forEach(function(id){ document.getElementById(id).value=""; });
+    switchTab("mycards");
+  }
+  function v(id){ return document.getElementById(id).value.trim(); }
+  function setStatus(html){ var el=document.getElementById("status"); if(!html){el.style.display="none";el.innerHTML="";return;} el.style.display="";el.innerHTML=html; }
+
+  function switchTab(name){
+    document.querySelectorAll(".tab").forEach(function(t){ t.classList.toggle("active", t.dataset.tab===name); });
+    document.getElementById("tab-browse").style.display = name==="browse"?"":"none";
+    document.getElementById("tab-mycards").style.display = name==="mycards"?"":"none";
+    document.getElementById("tab-add").style.display = name==="add"?"":"none";
+    if(name==="mycards") renderMyCards();
+  }
+  document.querySelectorAll(".tab").forEach(function(t){ t.addEventListener("click",function(){ switchTab(t.dataset.tab); }); });
+  document.getElementById("q").addEventListener("input", debounced);
+  document.getElementById("m_save").addEventListener("click", manualSave);
+})();
+</script>
+</body>
+</html>
