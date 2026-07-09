@@ -409,13 +409,19 @@
     var s = document.createElement("script");
     s.src = "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js";
     s.onload = function () {
-      window.kuromoji.builder({ dicPath: "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict" })
-        .build(function (err, tokenizer) {
-          kuromoji = err ? null : tokenizer;
-          kuromojiReady = true;
-          kuromojiCallbacks.forEach(function (fn) { fn(kuromoji); });
-          kuromojiCallbacks = [];
-        });
+      try {
+        window.kuromoji.builder({ dicPath: "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict" })
+          .build(function (err, tokenizer) {
+            kuromoji = err ? null : tokenizer;
+            kuromojiReady = true;
+            kuromojiCallbacks.forEach(function (fn) { fn(kuromoji); });
+            kuromojiCallbacks = [];
+          });
+      } catch (e) {
+        kuromojiReady = true;
+        kuromojiCallbacks.forEach(function (fn) { fn(null); });
+        kuromojiCallbacks = [];
+      }
     };
     s.onerror = function () {
       kuromojiReady = true;
