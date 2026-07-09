@@ -397,6 +397,56 @@
   "use strict";
   var LS=window.localStorage;
   var CARDS=[],PACKS=[],PACKJA={},RACES=[],CATS=[];
+
+  var kuromoji = null;
+  var kuromojiReady = false;
+  var kuromojiCallbacks = [];
+
+  function loadKuromoji(cb) {
+    if (kuromojiReady) { cb(kuromoji); return; }
+    kuromojiCallbacks.push(cb);
+    if (kuromojiCallbacks.length > 1) return;
+    var s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js";
+    s.onload = function () {
+      window.kuromoji.builder({ dicPath: "https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict" })
+        .build(function (err, tokenizer) {
+          kuromoji = err ? null : tokenizer;
+          kuromojiReady = true;
+          kuromojiCallbacks.forEach(function (fn) { fn(kuromoji); });
+          kuromojiCallbacks = [];
+        });
+    };
+    s.onerror = function () {
+      kuromojiReady = true;
+      kuromojiCallbacks.forEach(function (fn) { fn(null); });
+      kuromojiCallbacks = [];
+    };
+    document.head.appendChild(s);
+  }
+
+  function addFurigana(text) {
+    return new Promise(function (resolve) {
+      if (!text) { resolve(""); return; }
+      loadKuromoji(function (tokenizer) {
+        if (!tokenizer) { resolve(esc(text)); return; }
+        var tokens = tokenizer.tokenize(text);
+        var html = tokens.map(function (t) {
+          var surface = t.surface_form;
+          var reading = t.reading;
+          if (!reading || reading === surface || !/[一-鿿]/.test(surface)) {
+            return esc(surface);
+          }
+          var hira = reading.replace(/[ァ-ヶ]/g, function (ch) {
+            return String.fromCharCode(ch.charCodeAt(0) - 0x60);
+          });
+          return "<ruby>" + esc(surface) + "<rt>" + esc(hira) + "</rt></ruby>";
+        }).join("");
+        resolve(html);
+      });
+    });
+  }
+
   var currentLang="jp";
   var ATTRS=["dark","light","earth","water","fire","wind","divine"];
   var CAT_ORDER=["Normal","Effect","Ritual","Fusion","Synchro","Xyz","Pendulum","Link","Toon","Spirit","Union","Gemini","Tuner","Flip"];
@@ -688,6 +738,18 @@
     if(isSaved(c.id)){sb.textContent="✓ In My Cards";sb.disabled=true;}
     host.querySelectorAll(".pchip[data-pack]").forEach(function(ch){ch.addEventListener("click",function(){document.getElementById("f-pack").value=ch.dataset.pack;host.innerHTML="";document.getElementById("browsePanel").style.display="";apply();window.scrollTo({top:0,behavior:"smooth"});});});
     window.scrollTo({top:0,behavior:"smooth"});
+    var jpBox = document.getElementById("effJp");
+    if (jpBox && c.jpEff) {
+      addFurigana(c.jpEff).then(function (html) {
+        if (jpBox && jpBox.parentNode) jpBox.innerHTML = html;
+      });
+    }
+    var typeEl = host.querySelector(".d-typeline .jp");
+    if (typeEl) {
+      addFurigana(typeLineJa(c)).then(function (html) {
+        if (typeEl && typeEl.parentNode) typeEl.innerHTML = html;
+      });
+    }
   }
 
   function myCards(){return lsGet("nt-cards-v2",[]);}
