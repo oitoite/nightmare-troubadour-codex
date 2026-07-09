@@ -566,7 +566,7 @@
     var sb=document.getElementById("saveBtn");
     sb.addEventListener("click",function(){saveCard(c);sb.textContent="✓ Saved";sb.disabled=true;});
     if(isSaved(c.id)){sb.textContent="✓ In My Cards";sb.disabled=true;}
-    host.querySelectorAll(".pchip[data-pack]").forEach(function(ch){ch.addEventListener("click",function(){document.getElementById("f-pack").value=ch.dataset.pack;host.innerHTML="";document.getElementById("browsePanel").style.display="";apply();window.scrollTo(0,0);});});
+    host.querySelectorAll(".pchip[data-pack]").forEach(function(ch){ch.addEventListener("click",function(){document.getElementById("f-pack").value=ch.dataset.pack;host.innerHTML="";document.getElementById("browsePanel").style.display="";apply();window.scrollTo({top:0,behavior:"smooth"});});});
     window.scrollTo({top:0,behavior:"smooth"});
   }
 
