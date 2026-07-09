@@ -763,31 +763,60 @@
   function saveCard(c){var l=myCards();if(c.id!=null&&l.some(function(x){return x.id===c.id;}))return;var cp=JSON.parse(JSON.stringify(c));cp.savedAt=Date.now();l.unshift(cp);lsSet("nt-cards-v2",l);}
   function removeCard(i){var l=myCards();l.splice(i,1);lsSet("nt-cards-v2",l);renderMyCards();}
   function updateNote(i,t){var l=myCards();if(l[i]){l[i].userNote=t;lsSet("nt-cards-v2",l);}}
-  function renderMyCards(){
-    var host=document.getElementById("mycardsList"),list=myCards();
-    if(!list.length){host.innerHTML='<div class="frame"><div class="empty"><div class="big">No saved cards</div><br>Tap the ✦ Save button on any card in Card Search to keep it here.</div></div>';return;}
-    host.innerHTML="";
-    list.forEach(function(c,i){
-      var isMon=c.cardType==="monster";
-      var art=c.img?'<img class="d-art" src="'+esc(c.img)+'" onerror="this.outerHTML=\'<div class=&quot;d-art ph&quot;>No image</div>\'">':'<div class="d-art ph">No image</div>';
-      var attrline=isMon&&(c.attribute||c.level!=null)?'<div class="d-attrline">'+(c.attribute?'<img src="'+attrIcon(c.attribute)+'"> ':"")+(c.level!=null?'<span class="lvl">'+(c.level>0?new Array(c.level+1).join("★"):"★0")+'</span>':"")+'</div>':"";
-      var stats=(isMon&&(c.atk!=null||c.def!=null))?'<div class="d-stats"><span><small>ATK</small>'+(c.atk==null?"?":c.atk)+'</span><span><small>DEF</small>'+(c.def==null?"?":c.def)+'</span></div>':"";
-      var eff="";
-      if(c.jpEff)eff+='<div class="d-eff-label">効果</div><div class="d-box">'+esc(c.jpEff)+'</div>';
-      if(c.enEff)eff+='<div class="d-eff-label">English</div><div class="d-box en">'+esc(c.enEff)+'</div>';
-      if(!c.jpEff&&!c.enEff&&c.note)eff='<div class="d-box">'+esc(c.note)+'</div>';
-      var typ=c.typeLine||(isMon?typeLineEn(c):"");
-      var d=document.createElement("div");d.className="detail";
-      d.innerHTML='<div class="detail-h" style="--frameCol:'+frameColor(c)+'"></div><div class="detail-b"><div>'+art+'</div><div>'+
-        (c.reading&&c.reading!==c.ja?'<div class="d-ruby">'+esc(c.reading)+'</div>':"")+
-        '<div class="d-name">'+esc(c.ja||c.en||"—")+'</div>'+(c.en?'<div class="d-en">'+esc(c.en)+'</div>':"")+
-        attrline+(typ?'<div class="d-type">'+esc(typ)+'</div>':"")+eff+stats+
-        '<div class="saved-note"><div class="d-eff-label">My note</div><textarea data-note="'+i+'" placeholder="Add your own note…">'+esc(c.userNote||"")+'</textarea></div>'+
-        '<div class="d-actions"><button class="pchip" data-del="'+i+'" style="cursor:pointer">Remove</button></div></div></div>';
+  function renderMyCards() {
+    var host = document.getElementById("mycardsList"), list = myCards();
+    if (!list.length) {
+      host.innerHTML = '<div class="frame"><div class="empty"><div class="big">No saved cards</div><br>Save cards from Card Search to collect them here.</div></div>';
+      return;
+    }
+    host.innerHTML = "";
+    list.forEach(function (c, i) {
+      var isMon = c.cardType === "monster";
+      var fc = frameColor(c);
+      var art = c.img
+        ? '<img class="d-art" src="' + esc(c.img) + '" onerror="this.outerHTML=\'<div class=&quot;d-art ph&quot;>No image</div>\'">'
+        : '<div class="d-art ph">No image</div>';
+      var nameHtml = (c.reading && c.reading !== c.ja && c.ja)
+        ? '<ruby class="d-ruby-name" style="font-size:20px">' + esc(c.ja) + '<rt>' + esc(c.reading) + '</rt></ruby>'
+        : '<span class="d-ruby-name" style="font-size:20px">' + esc(c.ja || c.en || "—") + '</span>';
+      var attrRow = isMon && (c.attribute || c.level != null)
+        ? '<div class="d-attr-row">' +
+            (c.attribute ? '<img class="d-attr-icon" src="' + attrIcon(c.attribute) + '" alt="">' : "") +
+            (c.level != null ? '<span class="d-level" style="font-size:14px">' + (c.level > 0 ? new Array(c.level + 1).join("★") : "0") + '</span>' : "") +
+          '</div>' : "";
+      var effHtml = "";
+      if (c.jpEff) effHtml += '<div class="d-eff-label" style="margin-top:10px">効果テキスト</div><div class="d-eff-jp" style="font-size:13px">' + esc(c.jpEff) + '</div>';
+      else if (c.enEff) effHtml += '<div class="d-eff-label" style="margin-top:10px">Card Text</div><div class="d-eff-en" style="font-size:13px">' + esc(c.enEff) + '</div>';
+      var stats = (isMon && (c.atk != null || c.def != null))
+        ? '<div class="d-stats" style="font-size:14px">' +
+            '<div class="d-stat"><small>ATK</small><span style="font-size:18px">' + (c.atk == null ? "?" : c.atk) + '</span></div>' +
+            '<div class="d-stat"><small>DEF</small><span style="font-size:18px">' + (c.def == null ? "?" : c.def) + '</span></div>' +
+          '</div>' : "";
+      var d = document.createElement("div");
+      d.className = "detail";
+      d.innerHTML =
+        '<div class="detail-h" style="--frameCol:' + fc + '"></div>' +
+        '<div class="detail-b">' +
+          '<div class="d-art-col">' + art + '</div>' +
+          '<div class="d-info">' +
+            '<div class="d-frame-stripe" style="background:' + fc + '"></div>' +
+            '<div class="d-name-block">' + nameHtml + '<div class="d-en-name" style="font-size:13px">' + esc(c.en || "") + '</div></div>' +
+            attrRow + effHtml + stats +
+            '<div style="margin-top:12px">' +
+              '<div class="d-eff-label">My note</div>' +
+              '<textarea data-note="' + i + '" style="width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:5px;color:var(--ink);padding:8px 10px;font-family:inherit;font-size:13px;resize:vertical;min-height:44px;outline:none;" placeholder="Add your own note…">' + esc(c.userNote || "") + '</textarea>' +
+            '</div>' +
+            '<div class="d-actions" style="margin-top:10px"><button class="pchip" data-del="' + i + '" style="cursor:pointer">Remove</button></div>' +
+          '</div>' +
+        '</div>';
       host.appendChild(d);
     });
-    host.querySelectorAll("[data-del]").forEach(function(b){b.addEventListener("click",function(){removeCard(parseInt(b.dataset.del,10));});});
-    host.querySelectorAll("[data-note]").forEach(function(t){t.addEventListener("change",function(){updateNote(parseInt(t.dataset.note,10),t.value);});});
+    host.querySelectorAll("[data-del]").forEach(function (b) {
+      b.addEventListener("click", function () { removeCard(parseInt(b.dataset.del, 10)); });
+    });
+    host.querySelectorAll("[data-note]").forEach(function (t) {
+      t.addEventListener("change", function () { updateNote(parseInt(t.dataset.note, 10), t.value); });
+    });
   }
 
   function setStatus(h){var el=document.getElementById("status");if(!h){el.style.display="none";el.innerHTML="";return;}el.style.display="";el.innerHTML=h;}
