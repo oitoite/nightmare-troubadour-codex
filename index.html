@@ -483,7 +483,7 @@
     buildControls(); document.getElementById("filterPanel").style.display=""; setStatus(""); apply();
   }).catch(function(){
     setStatus("");
-    document.getElementById("cardGrid").innerHTML='<div class="frame"><div class="setup"><h3>Dataset not built yet</h3>This database loads from <code>cards.json</code>. From the project folder run <code>node scrape.mjs</code> to build the full ~1,000-card dataset from Yugipedia + YGOResources, then reload.</div></div>';
+    document.getElementById("cardGrid").innerHTML='<div class="frame"><div class="setup"><h3>Card data unavailable</h3>Could not load <code>cards.json</code>. Make sure you are opening this page from a web server, not directly from the filesystem.</div></div>';
   });
 
   function buildControls(){
