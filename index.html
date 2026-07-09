@@ -337,42 +337,44 @@
 
   <div class="wrap">
     <section id="tab-browse">
-      <div class="frame"><div class="frame-pad">
-        <div class="search-top">
-          <div class="kw"><input id="q" placeholder="Enter Keyword" autocomplete="off"><span class="clr" id="qclr">✕</span></div>
-          <select class="mode" id="mode"><option value="name">Search by Card Name</option><option value="text">Search by Card Text</option></select>
-          <button class="search-btn" id="searchBtn">Search</button>
-        </div>
-        <div class="filters-bar">Search Filters</div>
-        <div id="filterPanel" style="display:none;margin-top:14px;">
-          <div class="typestrip">
-            <button class="typetab active" data-type="">Search All Cards</button>
-            <button class="typetab" data-type="monster">Monster Cards</button>
-            <button class="typetab" data-type="spell">Spell Cards</button>
-            <button class="typetab" data-type="trap">Trap Cards</button>
+      <div id="browsePanel">
+        <div class="frame"><div class="frame-pad">
+          <div class="search-top">
+            <div class="kw"><input id="q" placeholder="Enter Keyword" autocomplete="off"><span class="clr" id="qclr">✕</span></div>
+            <select class="mode" id="mode"><option value="name">Search by Card Name</option><option value="text">Search by Card Text</option></select>
+            <button class="search-btn" id="searchBtn">Search</button>
           </div>
-
-          <div class="frow"><div class="fcell">Attribute <span class="clrx" data-clear="attr">✕</span></div><div class="fbtns" id="f-attrs"></div></div>
-          <div class="frow" id="row-race"><div class="fcell">Monster Type <span class="clrx" data-clear="race">✕</span></div><div class="fbtns" id="f-races"></div></div>
-          <div class="frow" id="row-cat"><div class="fcell">Card Type <span class="clrx" data-clear="cat">✕</span></div><div class="fbtns" id="f-cats"></div></div>
-          <div class="frow"><div class="fcell">Level / Rank <span class="clrx" data-clear="lvl">✕</span></div><div class="fbtns" id="f-levels" style="grid-template-columns:repeat(auto-fill,minmax(44px,1fr));"></div></div>
-          <div class="frow simple"><div class="fcell">ATK / DEF <span class="clrx" data-clear="stat">✕</span></div>
-            <div class="fnum">
-              <span class="field-lbl">ATK</span><input class="num" id="f-atk-min" type="number" min="0" placeholder="min"><span class="field-lbl">–</span><input class="num" id="f-atk-max" type="number" min="0" placeholder="max">
-              <span class="field-lbl" style="margin-left:10px">DEF</span><input class="num" id="f-def-min" type="number" min="0" placeholder="min"><span class="field-lbl">–</span><input class="num" id="f-def-max" type="number" min="0" placeholder="max">
+          <div class="filters-bar">Search Filters</div>
+          <div id="filterPanel" style="display:none;margin-top:14px;">
+            <div class="typestrip">
+              <button class="typetab active" data-type="">Search All Cards</button>
+              <button class="typetab" data-type="monster">Monster Cards</button>
+              <button class="typetab" data-type="spell">Spell Cards</button>
+              <button class="typetab" data-type="trap">Trap Cards</button>
             </div>
-          </div>
-          <div class="frow simple"><div class="fcell">Pack · パック <span class="clrx" data-clear="pack">✕</span></div>
-            <div><select class="pack" id="f-pack"><option value="">All packs</option></select></div>
-          </div>
-          <div class="actions-row"><button class="search-btn" id="searchBtn2">Search</button></div>
-        </div>
-      </div></div>
 
-      <div class="toolbar"><div class="count" id="count"></div></div>
-      <div id="status" class="status"><span class="spinner"></span>Opening the database…</div>
+            <div class="frow"><div class="fcell">Attribute <span class="clrx" data-clear="attr">✕</span></div><div class="fbtns" id="f-attrs"></div></div>
+            <div class="frow" id="row-race"><div class="fcell">Monster Type <span class="clrx" data-clear="race">✕</span></div><div class="fbtns" id="f-races"></div></div>
+            <div class="frow" id="row-cat"><div class="fcell">Card Type <span class="clrx" data-clear="cat">✕</span></div><div class="fbtns" id="f-cats"></div></div>
+            <div class="frow"><div class="fcell">Level / Rank <span class="clrx" data-clear="lvl">✕</span></div><div class="fbtns" id="f-levels" style="grid-template-columns:repeat(auto-fill,minmax(44px,1fr));"></div></div>
+            <div class="frow simple"><div class="fcell">ATK / DEF <span class="clrx" data-clear="stat">✕</span></div>
+              <div class="fnum">
+                <span class="field-lbl">ATK</span><input class="num" id="f-atk-min" type="number" min="0" placeholder="min"><span class="field-lbl">–</span><input class="num" id="f-atk-max" type="number" min="0" placeholder="max">
+                <span class="field-lbl" style="margin-left:10px">DEF</span><input class="num" id="f-def-min" type="number" min="0" placeholder="min"><span class="field-lbl">–</span><input class="num" id="f-def-max" type="number" min="0" placeholder="max">
+              </div>
+            </div>
+            <div class="frow simple"><div class="fcell">Pack · パック <span class="clrx" data-clear="pack">✕</span></div>
+              <div><select class="pack" id="f-pack"><option value="">All packs</option></select></div>
+            </div>
+            <div class="actions-row"><button class="search-btn" id="searchBtn2">Search</button></div>
+          </div>
+        </div></div>
+
+        <div class="toolbar"><div class="count" id="count"></div></div>
+        <div id="status" class="status"><span class="spinner"></span>Opening the database…</div>
+        <div id="cardGrid" class="card-grid"></div>
+      </div><!-- /browsePanel -->
       <div id="detail"></div>
-      <div id="cardGrid" class="card-grid"></div>
     </section>
 
     <section id="tab-mycards" style="display:none;"><div id="mycardsList"></div></section>
@@ -543,8 +545,8 @@
   }
 
   function showDetail(c){
-    var host=document.getElementById("detail"),rows=document.getElementById("cardGrid");
-    rows.style.display="none";
+    var host=document.getElementById("detail");
+    document.getElementById("browsePanel").style.display="none";
     var isMon=c.cardType==="monster";
     var art=c.img?'<img class="d-art" src="'+esc(c.img)+'" alt="'+esc(c.en)+'" onerror="this.outerHTML=\'<div class=&quot;d-art ph&quot;>No image</div>\'">':'<div class="d-art ph">No image</div>';
     var attrline=isMon?'<div class="d-attrline">'+(c.attribute?'<img src="'+attrIcon(c.attribute)+'" alt="'+esc(c.attribute)+'"> ':"")+(c.level!=null?'<span class="lvl">'+(c.level>0?new Array(c.level+1).join("★"):"★0")+' <span style="color:#8a7a57;font-weight:400">Lv.'+c.level+'</span></span>':"")+'</div>':"";
@@ -560,11 +562,11 @@
       eff+stats+(packs?'<div class="d-packs"><div class="d-eff-label">収録パック / In packs</div>'+packs+'</div>':"")+
       '<div class="d-actions"><button class="search-btn" id="saveBtn" style="font-size:13px;padding:8px 16px;">✦ Save to My Cards</button><button class="pchip" id="backBtn" style="cursor:pointer">Back to results</button></div>'+
       '</div></div></div>';
-    document.getElementById("backBtn").addEventListener("click",function(){host.innerHTML="";rows.style.display="";});
+    document.getElementById("backBtn").addEventListener("click",function(){host.innerHTML="";document.getElementById("browsePanel").style.display="";window.scrollTo({top:0,behavior:"smooth"});});
     var sb=document.getElementById("saveBtn");
     sb.addEventListener("click",function(){saveCard(c);sb.textContent="✓ Saved";sb.disabled=true;});
     if(isSaved(c.id)){sb.textContent="✓ In My Cards";sb.disabled=true;}
-    host.querySelectorAll(".pchip[data-pack]").forEach(function(ch){ch.addEventListener("click",function(){document.getElementById("f-pack").value=ch.dataset.pack;host.innerHTML="";rows.style.display="";apply();window.scrollTo(0,0);});});
+    host.querySelectorAll(".pchip[data-pack]").forEach(function(ch){ch.addEventListener("click",function(){document.getElementById("f-pack").value=ch.dataset.pack;host.innerHTML="";document.getElementById("browsePanel").style.display="";apply();window.scrollTo(0,0);});});
     window.scrollTo({top:0,behavior:"smooth"});
   }
 
