@@ -310,6 +310,16 @@
   .d-set-row b { color: var(--ink-2); font-weight: 500; }
   .d-passcode { font-family: "Cinzel", serif; font-size: 10px; letter-spacing: .12em; color: var(--ink-3); margin-bottom: 12px; }
 
+  .d-links { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; padding-top: 12px; border-top: 1px solid var(--line-2); }
+  .ext-link {
+    font-family: "Cinzel", serif; font-size: 11px; letter-spacing: .04em;
+    color: var(--ink-3); background: var(--panel-2);
+    border: 1px solid var(--line); border-radius: 5px;
+    padding: 6px 12px; text-decoration: none;
+  }
+  .ext-link:hover { color: var(--gold); border-color: var(--frame); }
+  .d-links .d-eff-label { width: 100%; margin-bottom: 4px; }
+
   .manual-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   @media (max-width:560px){ .manual-grid{grid-template-columns:1fr;} }
   .manual-grid input,.manual-grid textarea{background:#16130d;border:1px solid var(--frame-2);border-radius:5px;padding:10px 12px;font-family:inherit;font-size:14px;outline:none;color:var(--ink);}
@@ -387,6 +397,7 @@
   "use strict";
   var LS=window.localStorage;
   var CARDS=[],PACKS=[],PACKJA={},RACES=[],CATS=[];
+  var currentLang="jp";
   var ATTRS=["dark","light","earth","water","fire","wind","divine"];
   var CAT_ORDER=["Normal","Effect","Ritual","Fusion","Synchro","Xyz","Pendulum","Link","Toon","Spirit","Union","Gemini","Tuner","Flip"];
   var FRAMEVAR={normal:"--f-normal",effect:"--f-effect",ritual:"--f-ritual",fusion:"--f-fusion",synchro:"--f-synchro",xyz:"--f-xyz",link:"--f-link",spell:"--f-spell",trap:"--f-trap"};
@@ -547,21 +558,130 @@
   function showDetail(c){
     var host=document.getElementById("detail");
     document.getElementById("browsePanel").style.display="none";
-    var isMon=c.cardType==="monster";
-    var art=c.img?'<img class="d-art" src="'+esc(c.img)+'" alt="'+esc(c.en)+'" onerror="this.outerHTML=\'<div class=&quot;d-art ph&quot;>No image</div>\'">':'<div class="d-art ph">No image</div>';
-    var attrline=isMon?'<div class="d-attrline">'+(c.attribute?'<img src="'+attrIcon(c.attribute)+'" alt="'+esc(c.attribute)+'"> ':"")+(c.level!=null?'<span class="lvl">'+(c.level>0?new Array(c.level+1).join("★"):"★0")+' <span style="color:#8a7a57;font-weight:400">Lv.'+c.level+'</span></span>':"")+'</div>':"";
-    var stats=(isMon&&(c.atk!=null||c.def!=null))?'<div class="d-stats"><span><small>ATK</small>'+(c.atk==null?"?":c.atk)+'</span><span><small>DEF</small>'+(c.def==null?"?":c.def)+'</span></div>':"";
-    var eff="";
-    if(c.jpEff)eff+='<div class="d-eff-label">効果 / テキスト</div><div class="d-box">'+esc(c.jpEff)+'</div>';
-    if(c.enEff)eff+='<div class="d-eff-label">English</div><div class="d-box en">'+esc(c.enEff)+'</div>';
-    var packs=(c.packs||[]).map(function(p){var ja=PACKJA[p.pack]&&PACKJA[p.pack].ja;return '<span class="pchip" data-pack="'+esc(p.pack)+'">'+esc(p.pack)+(ja?' <b>'+esc(ja)+'</b>':"")+' · '+esc(p.rarity)+'</span>';}).join("");
-    host.innerHTML='<div class="detail"><div class="detail-h" style="--frameCol:'+frameColor(c)+'"></div><div class="detail-b"><div>'+art+'</div><div>'+
-      (c.reading&&c.reading!==c.ja?'<div class="d-ruby">'+esc(c.reading)+'</div>':"")+
-      '<div class="d-name">'+esc(c.ja||c.en||"—")+'</div>'+(c.en?'<div class="d-en">'+esc(c.en)+'</div>':"")+
-      attrline+'<div class="d-type">'+esc(typeLineJa(c))+'</div><div class="d-typeen">'+esc(typeLineEn(c))+'</div>'+
-      eff+stats+(packs?'<div class="d-packs"><div class="d-eff-label">収録パック / In packs</div>'+packs+'</div>':"")+
-      '<div class="d-actions"><button class="search-btn" id="saveBtn" style="font-size:13px;padding:8px 16px;">✦ Save to My Cards</button><button class="pchip" id="backBtn" style="cursor:pointer">Back to results</button></div>'+
-      '</div></div></div>';
+
+    var isMon = c.cardType === "monster";
+    var fc = frameColor(c);
+
+    // 1. Art column
+    var artHtml = c.img
+      ? '<img class="d-art" src="' + esc(c.img) + '" alt="' + esc(c.en) + '" onerror="this.outerHTML=\'<div class=&quot;d-art ph&quot;>No image</div>\'">'
+      : '<div class="d-art ph">No image</div>';
+
+    // 2. Name with ruby
+    var nameHtml = (c.reading && c.reading !== c.ja && c.ja)
+      ? '<ruby class="d-ruby-name">' + esc(c.ja) + '<rt>' + esc(c.reading) + '</rt></ruby>'
+      : '<span class="d-ruby-name">' + esc(c.ja || c.en || "—") + '</span>';
+
+    // 3. Attribute + level / property row
+    var attrRow = "";
+    if (isMon) {
+      if (c.attribute) attrRow += '<img class="d-attr-icon" src="' + attrIcon(c.attribute) + '" alt="' + esc(c.attribute.toUpperCase()) + '" title="' + esc(c.attribute.toUpperCase()) + '">';
+      if (c.level != null) {
+        attrRow += '<span class="d-level">' + (c.level > 0 ? new Array(c.level + 1).join("★") : "0") + '</span>';
+        attrRow += '<span style="font-family:\'Cinzel\',serif;font-size:11px;color:var(--ink-3);letter-spacing:.06em;margin-left:2px">Lv.' + c.level + '</span>';
+      }
+    } else {
+      var propLabel = (c.spellTrapType || "Normal") + " " + (c.cardType === "spell" ? "Spell" : "Trap");
+      attrRow += '<span class="d-prop-tag">' + esc(propLabel) + '</span>';
+    }
+
+    // 4. Type line
+    var typeJa = typeLineJa(c);
+    var typeEn = typeLineEn(c);
+
+    // 5. Effect text with JP/EN toggle
+    var hasJp = !!c.jpEff, hasEn = !!c.enEff;
+    var langInit = currentLang || "jp";
+    var effHtml = "";
+    if (hasJp || hasEn) {
+      effHtml = '<div class="lang-toggle">' +
+        '<button class="lang-btn' + (langInit === "jp" ? " active" : "") + '" data-lang="jp">日本語</button>' +
+        '<button class="lang-btn' + (langInit === "en" ? " active" : "") + '" data-lang="en">English</button>' +
+        '</div>';
+      if (hasJp) effHtml += '<div class="d-eff-jp' + (langInit !== "jp" ? " hidden" : "") + '" id="effJp">' + esc(c.jpEff) + '</div>';
+      if (hasEn) effHtml += '<div class="d-eff-en' + (langInit !== "en" ? " hidden" : "") + '" id="effEn">' + esc(c.enEff) + '</div>';
+    }
+
+    // 6. ATK / DEF
+    var statsHtml = "";
+    if (isMon && (c.atk != null || c.def != null)) {
+      statsHtml = '<div class="d-stats">' +
+        '<div class="d-stat"><small>ATK</small><span>' + (c.atk == null ? "?" : c.atk) + '</span></div>' +
+        '<div class="d-stat"><small>DEF</small><span>' + (c.def == null ? "?" : c.def) + '</span></div>' +
+        '</div>';
+    }
+
+    // 7. Set codes + passcode
+    var setRows = "";
+    (c.packs || []).forEach(function (p) {
+      var parts = [];
+      if (p.setCode) parts.push("<b>" + esc(p.setCode) + "</b>");
+      parts.push(esc(p.pack));
+      if (p.rarity) parts.push(esc(p.rarity));
+      setRows += '<div class="d-set-row">' + parts.join(" · ") + '</div>';
+    });
+    var passcodeHtml = c.passcode ? '<div class="d-passcode">✦ ' + esc(c.passcode) + '</div>' : '';
+
+    // 8. Pack filter chips
+    var packChips = "";
+    if (c.packs && c.packs.length) {
+      packChips = '<div class="d-packs"><div class="d-eff-label">収録パック · In packs</div>';
+      c.packs.forEach(function (p) {
+        var ja = PACKJA[p.pack] && PACKJA[p.pack].ja;
+        packChips += '<span class="pchip" data-pack="' + esc(p.pack) + '">' + esc(p.pack) + (ja ? " <b>" + esc(ja) + "</b>" : "") + "</span>";
+      });
+      packChips += "</div>";
+    }
+
+    // 9. External links
+    var linksHtml = '<div class="d-links">';
+    if (c.id) {
+      linksHtml += '<a class="ext-link" href="https://db.ygoresources.com/card#' + c.id + ':ja" target="_blank" rel="noopener">YGOResources 日本語</a>';
+      linksHtml += '<a class="ext-link" href="https://db.ygoresources.com/card#' + c.id + '" target="_blank" rel="noopener">YGOResources EN</a>';
+    }
+    if (c.en) {
+      linksHtml += '<a class="ext-link" href="https://yugipedia.com/wiki/' + encodeURIComponent(c.en.replace(/ /g, "_")) + '" target="_blank" rel="noopener">Yugipedia</a>';
+    }
+    linksHtml += "</div>";
+
+    host.innerHTML =
+      '<div class="detail"><div class="detail-h" style="--frameCol:' + fc + '"></div>' +
+      '<div class="detail-b">' +
+        // Left: art
+        '<div class="d-art-col">' + artHtml + '</div>' +
+        // Right: info
+        '<div class="d-info">' +
+          '<div class="d-frame-stripe" style="background:' + fc + '"></div>' +
+          '<div class="d-name-block">' + nameHtml + '<div class="d-en-name">' + esc(c.en || "") + '</div></div>' +
+          (attrRow ? '<div class="d-attr-row">' + attrRow + '</div>' : '') +
+          '<div class="d-typeline"><div class="jp">' + esc(typeJa) + '</div><div class="en">' + esc(typeEn) + '</div></div>' +
+          (effHtml ? '<div class="d-eff-wrap">' + effHtml + '</div>' : '') +
+          statsHtml +
+          setRows +
+          passcodeHtml +
+          packChips +
+          linksHtml +
+          '<div class="d-actions">' +
+            '<button class="search-btn" id="saveBtn" style="font-size:13px;padding:8px 18px;">✦ Save to My Cards</button>' +
+            '<button class="pchip" id="backBtn" style="cursor:pointer;margin-left:8px;">← Back</button>' +
+          '</div>' +
+        '</div>' +
+      '</div></div>';
+
+    // JP/EN toggle
+    if (hasJp || hasEn) {
+      host.querySelectorAll(".lang-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          currentLang = btn.dataset.lang;
+          host.querySelectorAll(".lang-btn").forEach(function (b) { b.classList.toggle("active", b === btn); });
+          var jpEl = document.getElementById("effJp");
+          var enEl = document.getElementById("effEn");
+          if (jpEl) jpEl.classList.toggle("hidden", currentLang !== "jp");
+          if (enEl) enEl.classList.toggle("hidden", currentLang !== "en");
+        });
+      });
+    }
+
     document.getElementById("backBtn").addEventListener("click",function(){host.innerHTML="";document.getElementById("browsePanel").style.display="";window.scrollTo({top:0,behavior:"smooth"});});
     var sb=document.getElementById("saveBtn");
     sb.addEventListener("click",function(){saveCard(c);sb.textContent="✓ Saved";sb.disabled=true;});
