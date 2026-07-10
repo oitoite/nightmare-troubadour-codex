@@ -335,6 +335,19 @@
   .hint{font-size:12.5px;color:var(--ink-2);margin:0 2px 12px;}
   .foot{text-align:center;margin-top:30px;font-size:11.5px;color:var(--ink-3);line-height:1.7;}
   .foot a{color:#c8a45a;}
+
+  .dict-search-wrap{margin-bottom:4px;}
+  .dict-search{width:100%;background:#16130d;border:1px solid var(--frame);border-radius:5px;color:var(--ink);font-size:15px;padding:11px 13px;font-family:inherit;outline:none;}
+  .dict-search:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(242,194,74,.15);}
+  .dict-hint{font-size:12px;color:var(--ink-3);margin-top:7px;}
+  .dict-table{width:100%;border-collapse:collapse;}
+  .dict-table th{font-family:"Cinzel",serif;font-size:11px;letter-spacing:.08em;color:var(--gold-2);text-align:left;padding:8px 12px;border-bottom:2px solid var(--frame-2);background:var(--panel-2);}
+  .dict-group-hdr td{font-family:"Cinzel",serif;font-size:11.5px;letter-spacing:.1em;color:var(--gold-2);background:linear-gradient(90deg,rgba(200,164,90,.1),transparent);border-left:3px solid var(--gold-2);padding:7px 12px;border-bottom:1px solid var(--line);}
+  .dict-row td{padding:8px 12px;border-bottom:1px solid var(--line-2);vertical-align:middle;}
+  .dict-row:hover td{background:rgba(200,164,90,.05);}
+  .dict-row td:first-child{font-family:"Noto Sans JP",sans-serif;font-size:16px;color:var(--ink);}
+  .dict-row td:nth-child(2){font-family:"Noto Sans JP",sans-serif;font-size:12px;color:var(--ink-3);padding-top:4px;}
+  .dict-row td:last-child{color:var(--ink-2);font-size:13px;}
 </style>
 </head>
 <body>
@@ -344,6 +357,7 @@
   <div class="knav"><div class="knav-in">
     <button class="tab active" data-tab="browse">Card Search</button>
     <button class="tab" data-tab="mycards">My Cards</button>
+    <button class="tab" data-tab="dict">Dictionary</button>
   </div></div>
   <div class="banner"><div class="banner-in">Search the card pool of the Japanese DS game. Enter a keyword — card or pack, in 日本語 or English — set any filters, and press Search.</div></div>
   <div class="titleband"><div class="titleband-in"><h1 id="titleText">Card Search</h1></div></div>
@@ -391,6 +405,14 @@
     </section>
 
     <section id="tab-mycards" style="display:none;"><div id="mycardsList"></div></section>
+
+    <section id="tab-dict" style="display:none;">
+      <div class="frame"><div class="frame-pad">
+        <div class="dict-search-wrap"><input id="dictQ" class="dict-search" placeholder="Search in Japanese or English…" autocomplete="off"></div>
+        <div class="dict-hint">Card names from the game — sorted by Japanese reading (あいうえお order)</div>
+      </div></div>
+      <div id="dictBody"></div>
+    </section>
 
     <div class="foot">Cards &amp; art via <a href="https://yugipedia.com" target="_blank" rel="noopener">Yugipedia</a> and <a href="https://db.ygoresources.com" target="_blank" rel="noopener">YGOResources</a> · attribute icons © Konami.<br>Fan companion for the JP DS release of <em>Yu-Gi-Oh! Duel Monsters: Nightmare Troubadour</em>. Not affiliated with Konami.</div>
   </div>
@@ -756,12 +778,63 @@
   }
 
   function setStatus(h){var el=document.getElementById("status");if(!h){el.style.display="none";el.innerHTML="";return;}el.style.display="";el.innerHTML=h;}
+
+  function katToHira(s){return (s||"").replace(/[ァ-ヶ]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0x60);});}
+  var HIRA_ROW={};
+  (function(){
+    var rows=["あいうえお","かきくけこがぎぐげご","さしすせそざじずぜぞ","たちつてとだぢづでど","なにぬねの","はひふへほばびぶべぼぱぴぷぺぽ","まみむめも","やゆよ","らりるれろ","わをん"];
+    var heads=["あ","か","さ","た","な","は","ま","や","ら","わ"];
+    rows.forEach(function(row,i){for(var j=0;j<row.length;j++)HIRA_ROW[row[j]]=heads[i];});
+  })();
+  function rowOf(reading){var h=katToHira(reading||"");return HIRA_ROW[h.charAt(0)]||"他";}
+
+  var dictRendered=false, dictAllEntries=[];
+  function renderDict(){
+    if(!CARDS.length){document.getElementById("dictBody").innerHTML='<div class="empty"><span class="big">Loading…</span></div>';return;}
+    if(dictRendered)return;
+    dictRendered=true;
+    var seen={},entries=[];
+    CARDS.forEach(function(c){
+      var key=c.ja||"";if(!key||seen[key])return;seen[key]=1;
+      var sortKey=katToHira(c.reading||c.ja||"");
+      entries.push({ja:c.ja,reading:c.reading||"",en:c.en||"",sortKey:sortKey});
+    });
+    entries.sort(function(a,b){return a.sortKey<b.sortKey?-1:a.sortKey>b.sortKey?1:0;});
+    dictAllEntries=entries;
+    renderDictRows(entries);
+    document.getElementById("dictQ").addEventListener("input",function(){
+      var q=(this.value||"").trim();
+      if(!q){renderDictRows(dictAllEntries);return;}
+      var qL=q.toLowerCase(), qH=katToHira(q);
+      renderDictRows(dictAllEntries.filter(function(e){
+        return e.ja.indexOf(q)>=0||katToHira(e.ja).indexOf(qH)>=0||e.reading.indexOf(q)>=0||e.en.toLowerCase().indexOf(qL)>=0;
+      }));
+    });
+  }
+  function renderDictRows(entries){
+    var body=document.getElementById("dictBody");
+    if(!entries.length){body.innerHTML='<div class="empty"><span class="big">No results</span></div>';return;}
+    var html='<table class="dict-table"><thead><tr><th>日本語</th><th>読み方</th><th>English</th></tr></thead><tbody>';
+    var curRow="";
+    entries.forEach(function(e){
+      var row=rowOf(e.reading||e.ja||"");
+      if(row!==curRow){curRow=row;html+='<tr class="dict-group-hdr"><td colspan="3">'+esc(row)+'行</td></tr>';}
+      var hira=katToHira(e.reading||"");
+      var showReading=(e.reading&&e.reading!==e.ja)?hira:"";
+      html+='<tr class="dict-row"><td>'+esc(e.ja)+'</td><td>'+esc(showReading)+'</td><td>'+esc(e.en)+'</td></tr>';
+    });
+    html+='</tbody></table>';
+    body.innerHTML=html;
+  }
+
   function switchTab(name){
     document.querySelectorAll(".tab").forEach(function(t){t.classList.toggle("active",t.dataset.tab===name);});
     document.getElementById("tab-browse").style.display=name==="browse"?"":"none";
     document.getElementById("tab-mycards").style.display=name==="mycards"?"":"none";
-    document.getElementById("titleText").textContent = name==="mycards"?"My Cards":"Card Search";
+    document.getElementById("tab-dict").style.display=name==="dict"?"":"none";
+    document.getElementById("titleText").textContent=name==="mycards"?"My Cards":name==="dict"?"Dictionary":"Card Search";
     if(name==="mycards")renderMyCards();
+    if(name==="dict")renderDict();
   }
   document.querySelectorAll(".tab").forEach(function(t){t.addEventListener("click",function(){switchTab(t.dataset.tab);});});
 })();
