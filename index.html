@@ -609,8 +609,10 @@
         attrRow += '<span style="font-family:\'Cinzel\',serif;font-size:11px;color:var(--ink-3);letter-spacing:.06em;margin-left:2px">Lv.' + c.level + '</span>';
       }
     } else {
-      var propLabel = (c.spellTrapType || "Normal") + " " + (c.cardType === "spell" ? "Spell" : "Trap");
-      attrRow += '<span class="d-prop-tag">' + esc(propLabel) + '</span>';
+      var kind = c.cardType === "spell" ? "魔法" : "罠";
+      var propLabel = c.spellTrapTypeJa ? (c.spellTrapTypeJa + kind) : (kind + "カード");
+      var propEn = c.spellTrapType ? (c.spellTrapType + " " + (c.cardType === "spell" ? "Spell" : "Trap")) : ((c.cardType === "spell" ? "Spell" : "Trap") + " Card");
+      attrRow += '<span class="d-prop-tag" title="' + esc(propEn) + '">' + esc(propLabel) + '</span>';
     }
 
     // 4. Type line
@@ -664,8 +666,9 @@
     // 9. External links
     var linksHtml = '<div class="d-links">';
     if (c.id) {
-      linksHtml += '<a class="ext-link" href="https://db.ygoresources.com/card#' + c.id + ':ja" target="_blank" rel="noopener">YGOResources 日本語</a>';
-      linksHtml += '<a class="ext-link" href="https://db.ygoresources.com/card#' + c.id + '" target="_blank" rel="noopener">YGOResources EN</a>';
+      var cid = encodeURIComponent(c.id);
+      linksHtml += '<a class="ext-link" href="https://db.ygoresources.com/card#' + cid + ':ja" target="_blank" rel="noopener">YGOResources 日本語</a>';
+      linksHtml += '<a class="ext-link" href="https://db.ygoresources.com/card#' + cid + '" target="_blank" rel="noopener">YGOResources EN</a>';
     }
     if (c.en) {
       linksHtml += '<a class="ext-link" href="https://yugipedia.com/wiki/' + encodeURIComponent(c.en.replace(/ /g, "_")) + '" target="_blank" rel="noopener">Yugipedia</a>';
@@ -744,9 +747,19 @@
             (c.attribute ? '<img class="d-attr-icon" src="' + attrIcon(c.attribute) + '" alt="">' : "") +
             (c.level != null ? '<span class="d-level" style="font-size:14px">' + (c.level > 0 ? new Array(c.level + 1).join("★") : "0") + '</span>' : "") +
           '</div>' : "";
+      var mcJp = !!c.jpEff, mcEn = !!c.enEff, mcLang = currentLang || "jp";
       var effHtml = "";
-      if (c.jpEff) effHtml += '<div class="d-eff-label" style="margin-top:10px">効果テキスト</div><div class="d-eff-jp" style="font-size:13px">' + (c.jpEffHtml || esc(c.jpEff)) + '</div>';
-      else if (c.enEff) effHtml += '<div class="d-eff-label" style="margin-top:10px">Card Text</div><div class="d-eff-en" style="font-size:13px">' + esc(c.enEff) + '</div>';
+      if (mcJp || mcEn) {
+        effHtml += '<div class="d-eff-label" style="margin-top:10px">効果テキスト · Card Text</div>';
+        if (mcJp && mcEn) {
+          effHtml += '<div class="lang-toggle">' +
+            '<button class="lang-btn' + (mcLang === "jp" ? " active" : "") + '" data-mylang="jp">日本語</button>' +
+            '<button class="lang-btn' + (mcLang === "en" ? " active" : "") + '" data-mylang="en">English</button>' +
+            '</div>';
+        }
+        if (mcJp) effHtml += '<div class="d-eff-jp mc-jp' + ((mcEn && mcLang !== "jp") ? " hidden" : "") + '" style="font-size:13px">' + (c.jpEffHtml || esc(c.jpEff)) + '</div>';
+        if (mcEn) effHtml += '<div class="d-eff-en mc-en' + ((mcJp && mcLang !== "en") ? " hidden" : "") + '" style="font-size:13px">' + esc(c.enEff) + '</div>';
+      }
       var stats = (isMon && (c.atk != null || c.def != null))
         ? '<div class="d-stats" style="font-size:14px">' +
             '<div class="d-stat"><small>ATK</small><span style="font-size:18px">' + (c.atk == null ? "?" : c.atk) + '</span></div>' +
@@ -769,6 +782,15 @@
             '<div class="d-actions" style="margin-top:10px"><button class="pchip" data-del="' + i + '" style="cursor:pointer">Remove</button></div>' +
           '</div>' +
         '</div>';
+      d.querySelectorAll(".lang-btn[data-mylang]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          currentLang = btn.dataset.mylang;
+          d.querySelectorAll(".lang-btn[data-mylang]").forEach(function (b) { b.classList.toggle("active", b === btn); });
+          var jp = d.querySelector(".mc-jp"), en = d.querySelector(".mc-en");
+          if (jp) jp.classList.toggle("hidden", currentLang !== "jp");
+          if (en) en.classList.toggle("hidden", currentLang !== "en");
+        });
+      });
       host.appendChild(d);
     });
     host.querySelectorAll("[data-del]").forEach(function (b) {
