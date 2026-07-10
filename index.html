@@ -290,6 +290,8 @@
     font-family: "Noto Sans JP", sans-serif;
     margin-bottom: 12px;
   }
+  .d-eff-jp ruby rt { font-size: 9px; color: #6a5a38; }
+  .d-typeline .jp ruby rt { font-size: 9px; color: var(--gold); opacity: .7; }
 
   .d-eff-en {
     background: var(--panel-2);
@@ -600,7 +602,7 @@
         '<button class="lang-btn' + (langInit === "jp" ? " active" : "") + '" data-lang="jp">日本語</button>' +
         '<button class="lang-btn' + (langInit === "en" ? " active" : "") + '" data-lang="en">English</button>' +
         '</div>';
-      if (hasJp) effHtml += '<div class="d-eff-jp' + (langInit !== "jp" ? " hidden" : "") + '" id="effJp">' + esc(c.jpEff) + '</div>';
+      if (hasJp) effHtml += '<div class="d-eff-jp' + (langInit !== "jp" ? " hidden" : "") + '" id="effJp">' + (c.jpEffHtml || esc(c.jpEff)) + '</div>';
       if (hasEn) effHtml += '<div class="d-eff-en' + (langInit !== "en" ? " hidden" : "") + '" id="effEn">' + esc(c.enEff) + '</div>';
     }
 
@@ -656,7 +658,7 @@
           '<div class="d-frame-stripe" style="background:' + fc + '"></div>' +
           '<div class="d-name-block">' + nameHtml + '<div class="d-en-name">' + esc(c.en || "") + '</div></div>' +
           (attrRow ? '<div class="d-attr-row">' + attrRow + '</div>' : '') +
-          '<div class="d-typeline"><div class="jp">' + esc(typeJa) + '</div><div class="en">' + esc(typeEn) + '</div></div>' +
+          '<div class="d-typeline"><div class="jp">' + (c.typeLineJaHtml || esc(typeJa)) + '</div><div class="en">' + esc(typeEn) + '</div></div>' +
           (effHtml ? '<div class="d-eff-wrap">' + effHtml + '</div>' : '') +
           statsHtml +
           setRows +
@@ -719,7 +721,7 @@
             (c.level != null ? '<span class="d-level" style="font-size:14px">' + (c.level > 0 ? new Array(c.level + 1).join("★") : "0") + '</span>' : "") +
           '</div>' : "";
       var effHtml = "";
-      if (c.jpEff) effHtml += '<div class="d-eff-label" style="margin-top:10px">効果テキスト</div><div class="d-eff-jp" style="font-size:13px">' + esc(c.jpEff) + '</div>';
+      if (c.jpEff) effHtml += '<div class="d-eff-label" style="margin-top:10px">効果テキスト</div><div class="d-eff-jp" style="font-size:13px">' + (c.jpEffHtml || esc(c.jpEff)) + '</div>';
       else if (c.enEff) effHtml += '<div class="d-eff-label" style="margin-top:10px">Card Text</div><div class="d-eff-en" style="font-size:13px">' + esc(c.enEff) + '</div>';
       var stats = (isMon && (c.atk != null || c.def != null))
         ? '<div class="d-stats" style="font-size:14px">' +
