@@ -410,6 +410,7 @@
       <div class="frame"><div class="frame-pad">
         <div class="dict-search-wrap"><input id="dictQ" class="dict-search" placeholder="Search in Japanese or English…" autocomplete="off"></div>
         <div class="dict-hint">Card names from the game — sorted by Japanese reading (あいうえお order)</div>
+
       </div></div>
       <div id="dictBody"></div>
     </section>
@@ -421,7 +422,7 @@
 (function(){
   "use strict";
   var LS=window.localStorage;
-  var CARDS=[],PACKS=[],PACKJA={},RACES=[],CATS=[];
+  var CARDS=[],PACKS=[],PACKJA={},RACES=[],CATS=[],VOCAB=[];
 
   var currentLang="jp";
   var ATTRS=["dark","light","earth","water","fire","wind","divine"];
@@ -441,9 +442,10 @@
 
   Promise.all([
     fetch("cards.json").then(function(r){if(!r.ok)throw 0;return r.json();}),
-    fetch("packs.json").then(function(r){return r.ok?r.json():{packs:[]};}).catch(function(){return {packs:[]};})
+    fetch("packs.json").then(function(r){return r.ok?r.json():{packs:[]};}).catch(function(){return {packs:[]};}).catch(function(){return {packs:[]};}),
+    fetch("vocabulary.json").then(function(r){return r.ok?r.json():{words:[]};}).catch(function(){return {words:[]};})
   ]).then(function(res){
-    CARDS=res[0].cards||[]; PACKS=res[1].packs||[];
+    CARDS=res[0].cards||[]; PACKS=res[1].packs||[]; VOCAB=res[2].words||[];
     PACKS.forEach(function(p){PACKJA[p.name]=p;});
     var rs={},cs={},ps={};
     CARDS.forEach(function(c){if(c.race)rs[c.race]=1;if(c.category)cs[c.category]=1;(c.packs||[]).forEach(function(p){ps[p.pack]=1;});});
@@ -793,13 +795,21 @@
     if(!CARDS.length){document.getElementById("dictBody").innerHTML='<div class="empty"><span class="big">Loading…</span></div>';return;}
     if(dictRendered)return;
     dictRendered=true;
-    var seen={},entries=[];
-    CARDS.forEach(function(c){
-      var key=c.ja||"";if(!key||seen[key])return;seen[key]=1;
-      var sortKey=katToHira(c.reading||c.ja||"");
-      entries.push({ja:c.ja,reading:c.reading||"",en:c.en||"",sortKey:sortKey});
-    });
-    entries.sort(function(a,b){return a.sortKey<b.sortKey?-1:a.sortKey>b.sortKey?1:0;});
+    var entries=[];
+    if(VOCAB.length){
+      VOCAB.forEach(function(w){
+        entries.push({ja:w.ja,reading:w.reading||"",en:w.en||"",sortKey:w.reading||w.ja||""});
+      });
+      document.querySelector(".dict-hint").textContent=entries.length+" unique words from card effect text — sorted by Japanese reading (あいうえお order)";
+    } else {
+      var seen={};
+      CARDS.forEach(function(c){
+        var key=c.ja||"";if(!key||seen[key])return;seen[key]=1;
+        var sortKey=katToHira(c.reading||c.ja||"");
+        entries.push({ja:c.ja,reading:c.reading||"",en:c.en||"",sortKey:sortKey});
+      });
+      entries.sort(function(a,b){return a.sortKey<b.sortKey?-1:a.sortKey>b.sortKey?1:0;});
+    }
     dictAllEntries=entries;
     renderDictRows(entries);
     document.getElementById("dictQ").addEventListener("input",function(){
