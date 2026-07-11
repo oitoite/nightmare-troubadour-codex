@@ -376,6 +376,10 @@
   .foot{text-align:center;margin-top:30px;font-size:11.5px;color:var(--ink-3);line-height:1.7;}
   .foot a{color:#c8a45a;}
 
+  .dict-modes{display:flex;border:1px solid var(--frame-2);border-radius:6px;overflow:hidden;width:fit-content;margin-bottom:12px;}
+  .dict-mode{font-family:"Cinzel",serif;font-size:12px;letter-spacing:.04em;background:var(--panel-2);color:var(--ink-3);border:none;border-right:1px solid var(--frame-2);padding:8px 16px;cursor:pointer;}
+  .dict-mode:last-child{border-right:none;}
+  .dict-mode.active{background:rgba(200,164,90,.18);color:var(--gold);font-weight:700;}
   .dict-search-wrap{margin-bottom:4px;}
   .dict-search{width:100%;background:#16130d;border:1px solid var(--frame);border-radius:5px;color:var(--ink);font-size:15px;padding:11px 13px;font-family:inherit;outline:none;}
   .dict-search:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(242,194,74,.15);}
@@ -444,9 +448,12 @@
 
     <section id="tab-dict" style="display:none;">
       <div class="frame"><div class="frame-pad">
+        <div class="dict-modes">
+          <button class="dict-mode active" data-dmode="words" type="button">Effect words</button>
+          <button class="dict-mode" data-dmode="game" type="button">Game terms</button>
+        </div>
         <div class="dict-search-wrap"><input id="dictQ" class="dict-search" placeholder="Search in Japanese or English…" autocomplete="off"></div>
-        <div class="dict-hint">Card names from the game — sorted by Japanese reading (あいうえお order)</div>
-
+        <div class="dict-hint" id="dictHint"></div>
       </div></div>
       <div id="dictBody"></div>
     </section>
@@ -459,7 +466,7 @@
   "use strict";
   if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}
   var LS=window.localStorage;
-  var CARDS=[],PACKS=[],PACKJA={},RACES=[],CATS=[],VOCAB=[];
+  var CARDS=[],PACKS=[],PACKJA={},RACES=[],CATS=[],VOCAB=[],GAMETERMS=[];
 
   var currentLang="jp";
   var currentFurigana=lsGet("nt-furigana",true);
@@ -509,9 +516,10 @@
   Promise.all([
     fetch("cards.json").then(function(r){if(!r.ok)throw 0;return r.json();}),
     fetch("packs.json").then(function(r){return r.ok?r.json():{packs:[]};}).catch(function(){return {packs:[]};}).catch(function(){return {packs:[]};}),
-    fetch("vocabulary.json").then(function(r){return r.ok?r.json():{words:[]};}).catch(function(){return {words:[]};})
+    fetch("vocabulary.json").then(function(r){return r.ok?r.json():{words:[]};}).catch(function(){return {words:[]};}),
+    fetch("game-terms.json").then(function(r){return r.ok?r.json():{terms:[]};}).catch(function(){return {terms:[]};})
   ]).then(function(res){
-    CARDS=res[0].cards||[]; PACKS=res[1].packs||[]; VOCAB=res[2].words||[];
+    CARDS=res[0].cards||[]; PACKS=res[1].packs||[]; VOCAB=res[2].words||[]; GAMETERMS=res[3].terms||[];
     PACKS.forEach(function(p){PACKJA[p.name]=p;});
     var rs={},cs={},ps={};
     CARDS.forEach(function(c){if(c.race)rs[c.race]=1;if(c.category)cs[c.category]=1;(c.packs||[]).forEach(function(p){ps[p.pack]=1;});});
@@ -878,45 +886,53 @@
   })();
   function rowOf(reading){var h=katToHira(reading||"");return HIRA_ROW[h.charAt(0)]||"他";}
 
-  var dictRendered=false, dictAllEntries=[];
+  var dictWired=false, dictMode="words", dictEntries=[];
+  function buildDictEntries(){
+    var out=[];
+    if(dictMode==="game"){
+      GAMETERMS.forEach(function(t){out.push({ja:t.ja,reading:t.reading||"",en:t.en||"",group:t.cat||"—"});});
+    } else {
+      var src=[];
+      if(VOCAB.length){ VOCAB.forEach(function(w){src.push({ja:w.ja,reading:w.reading||"",en:w.en||"",sortKey:w.reading||w.ja||""});}); }
+      else { var seen={}; CARDS.forEach(function(c){var k=c.ja||"";if(!k||seen[k])return;seen[k]=1;src.push({ja:c.ja,reading:c.reading||"",en:c.en||"",sortKey:katToHira(c.reading||c.ja||"")});}); }
+      src.sort(function(a,b){return a.sortKey<b.sortKey?-1:a.sortKey>b.sortKey?1:0;});
+      src.forEach(function(e){e.group=rowOf(e.reading||e.ja||"")+"行";out.push(e);});
+    }
+    return out;
+  }
+  function dictHintText(){
+    return dictMode==="game"
+      ? GAMETERMS.length+" common game & menu terms — grouped by where you'll see them"
+      : dictEntries.length+" words from card effect text — sorted by reading (あいうえお)";
+  }
+  function dictRender(filter){
+    dictEntries=buildDictEntries();
+    document.getElementById("dictHint").textContent=dictHintText();
+    var q=(filter||"").trim(), list=dictEntries;
+    if(q){ var qL=q.toLowerCase(),qH=katToHira(q); list=dictEntries.filter(function(e){return e.ja.indexOf(q)>=0||katToHira(e.ja).indexOf(qH)>=0||e.reading.indexOf(q)>=0||e.en.toLowerCase().indexOf(qL)>=0;}); }
+    renderDictRows(list);
+  }
   function renderDict(){
     if(!CARDS.length){document.getElementById("dictBody").innerHTML='<div class="empty"><span class="big">Loading…</span></div>';return;}
-    if(dictRendered)return;
-    dictRendered=true;
-    var entries=[];
-    if(VOCAB.length){
-      VOCAB.forEach(function(w){
-        entries.push({ja:w.ja,reading:w.reading||"",en:w.en||"",sortKey:w.reading||w.ja||""});
-      });
-      document.querySelector(".dict-hint").textContent=entries.length+" unique words from card effect text — sorted by Japanese reading (あいうえお order)";
-    } else {
-      var seen={};
-      CARDS.forEach(function(c){
-        var key=c.ja||"";if(!key||seen[key])return;seen[key]=1;
-        var sortKey=katToHira(c.reading||c.ja||"");
-        entries.push({ja:c.ja,reading:c.reading||"",en:c.en||"",sortKey:sortKey});
-      });
-      entries.sort(function(a,b){return a.sortKey<b.sortKey?-1:a.sortKey>b.sortKey?1:0;});
+    if(!dictWired){
+      dictWired=true;
+      document.getElementById("dictQ").addEventListener("input",function(){dictRender(this.value);});
+      document.querySelectorAll(".dict-mode").forEach(function(b){b.addEventListener("click",function(){
+        dictMode=b.dataset.dmode;
+        document.querySelectorAll(".dict-mode").forEach(function(x){x.classList.toggle("active",x===b);});
+        document.getElementById("dictQ").value="";
+        dictRender("");
+      });});
     }
-    dictAllEntries=entries;
-    renderDictRows(entries);
-    document.getElementById("dictQ").addEventListener("input",function(){
-      var q=(this.value||"").trim();
-      if(!q){renderDictRows(dictAllEntries);return;}
-      var qL=q.toLowerCase(), qH=katToHira(q);
-      renderDictRows(dictAllEntries.filter(function(e){
-        return e.ja.indexOf(q)>=0||katToHira(e.ja).indexOf(qH)>=0||e.reading.indexOf(q)>=0||e.en.toLowerCase().indexOf(qL)>=0;
-      }));
-    });
+    dictRender(document.getElementById("dictQ").value);
   }
   function renderDictRows(entries){
     var body=document.getElementById("dictBody");
     if(!entries.length){body.innerHTML='<div class="empty"><span class="big">No results</span></div>';return;}
     var html='<table class="dict-table"><thead><tr><th>日本語</th><th>読み方</th><th>English</th></tr></thead><tbody>';
-    var curRow="";
+    var curG="";
     entries.forEach(function(e){
-      var row=rowOf(e.reading||e.ja||"");
-      if(row!==curRow){curRow=row;html+='<tr class="dict-group-hdr"><td colspan="3">'+esc(row)+'行</td></tr>';}
+      if(e.group!==curG){curG=e.group;html+='<tr class="dict-group-hdr"><td colspan="3">'+esc(curG)+'</td></tr>';}
       var hira=katToHira(e.reading||"");
       var showReading=(e.reading&&e.reading!==e.ja)?hira:"";
       html+='<tr class="dict-row"><td>'+esc(e.ja)+'</td><td>'+esc(showReading)+'</td><td>'+esc(e.en)+'</td></tr>';
