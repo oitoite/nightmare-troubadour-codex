@@ -1,6 +1,6 @@
 /* Nightmare Troubadour Card Codex — offline service worker.
    Bump CACHE when the app shell or data changes to force a refresh. */
-var CACHE = "nt-codex-v7";
+var CACHE = "nt-codex-v8";
 var SHELL = [
   "./", "./index.html",
   "./cards.json", "./packs.json", "./vocabulary.json",
@@ -39,18 +39,21 @@ self.addEventListener("fetch", function (e) {
       })
     );
   } else {
-    // Card images + fonts (cross-origin): network-first. These are opaque
-    // responses whose status can't be read, so a rate-limited error would
-    // otherwise get cached and served as a broken image forever. Always try the
-    // live image; only fall back to cache (a previously-viewed image) offline.
+    // Card images + fonts (cross-origin): stale-while-revalidate. Serve the
+    // cached copy instantly (fast + offline), and refresh it in the background.
+    // Cross-origin responses are opaque (status unreadable), so a rate-limited
+    // error can still be cached — but because we always revalidate, a bad tile
+    // heals on the next view instead of sticking forever (the old cache-first bug).
     e.respondWith(
-      fetch(req).then(function (res) {
-        if (res && res.ok) {
-          var copy = res.clone();
-          caches.open(CACHE).then(function (c) { c.put(req, copy); });
-        }
-        return res;
-      }).catch(function () { return caches.match(req); })
+      caches.open(CACHE).then(function (c) {
+        return c.match(req).then(function (cached) {
+          var fresh = fetch(req).then(function (res) {
+            c.put(req, res.clone());
+            return res;
+          }).catch(function () { return cached; });
+          return cached || fresh;
+        });
+      })
     );
   }
 });
