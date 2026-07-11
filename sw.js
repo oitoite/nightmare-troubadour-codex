@@ -1,6 +1,6 @@
 /* Nightmare Troubadour Card Codex — offline service worker.
    Bump CACHE when the app shell or data changes to force a refresh. */
-var CACHE = "nt-codex-v6";
+var CACHE = "nt-codex-v7";
 var SHELL = [
   "./", "./index.html",
   "./cards.json", "./packs.json", "./vocabulary.json",
@@ -39,15 +39,18 @@ self.addEventListener("fetch", function (e) {
       })
     );
   } else {
-    // Card images + fonts (cross-origin): cache-first so viewed cards work offline.
+    // Card images + fonts (cross-origin): network-first. These are opaque
+    // responses whose status can't be read, so a rate-limited error would
+    // otherwise get cached and served as a broken image forever. Always try the
+    // live image; only fall back to cache (a previously-viewed image) offline.
     e.respondWith(
-      caches.match(req).then(function (m) {
-        return m || fetch(req).then(function (res) {
+      fetch(req).then(function (res) {
+        if (res && res.ok) {
           var copy = res.clone();
           caches.open(CACHE).then(function (c) { c.put(req, copy); });
-          return res;
-        }).catch(function () { return m; });
-      })
+        }
+        return res;
+      }).catch(function () { return caches.match(req); })
     );
   }
 });
