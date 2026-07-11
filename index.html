@@ -324,6 +324,13 @@
     margin-bottom: 12px;
   }
   .d-eff-jp ruby rt { font-size: 9px; color: #6a5a38; }
+  .d-eff-jp .vocab{text-decoration:underline dotted rgba(120,90,40,.5);text-underline-offset:2px;cursor:pointer;border-radius:2px;transition:background .1s;}
+  .d-eff-jp .vocab:hover,.d-eff-jp .vocab.active{background:rgba(200,164,90,.32);text-decoration-color:#7a5a28;}
+  .vocab-pop{position:absolute;z-index:100;max-width:250px;background:var(--panel-solid);border:1px solid var(--frame);border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,.6);padding:11px 14px;display:none;}
+  .vocab-pop.show{display:block;}
+  .vp-ja{font-size:17px;font-weight:700;color:#fff;font-family:"Noto Sans JP",sans-serif;line-height:1.2;}
+  .vp-reading{font-size:12px;color:var(--gold);margin-top:2px;}
+  .vp-en{font-size:12.5px;color:var(--ink-2);margin-top:6px;line-height:1.45;}
   .d-typeline .jp ruby rt { font-size: 9px; color: var(--gold); opacity: .7; }
 
   .d-eff-en {
@@ -460,6 +467,30 @@
   function applyFurigana(){document.body.classList.toggle("furigana-off",!currentFurigana);var bs=document.querySelectorAll(".furi-toggle"),i;for(i=0;i<bs.length;i++){bs[i].classList.toggle("active",currentFurigana);bs[i].setAttribute("aria-pressed",currentFurigana?"true":"false");}}
   document.addEventListener("click",function(e){var b=(e.target&&e.target.closest)?e.target.closest(".furi-toggle"):null;if(!b)return;currentFurigana=!currentFurigana;lsSet("nt-furigana",currentFurigana);applyFurigana();});
   applyFurigana();
+
+  var VOCABMAP=null;
+  function vocabMap(){if(!VOCABMAP){VOCABMAP={};for(var i=0;i<VOCAB.length;i++){var w=VOCAB[i];if(w&&w.ja&&!VOCABMAP[w.ja])VOCABMAP[w.ja]=w;}}return VOCABMAP;}
+  var vocabPop=null;
+  function hideVocabPop(){if(vocabPop)vocabPop.classList.remove("show");var a=document.querySelectorAll(".vocab.active"),i;for(i=0;i<a.length;i++)a[i].classList.remove("active");}
+  function showVocabPop(el){
+    var w=vocabMap()[el.getAttribute("data-w")];if(!w)return;
+    if(!vocabPop){vocabPop=document.createElement("div");vocabPop.className="vocab-pop";vocabPop.innerHTML='<div class="vp-ja"></div><div class="vp-reading"></div><div class="vp-en"></div>';document.body.appendChild(vocabPop);}
+    hideVocabPop();
+    vocabPop.querySelector(".vp-ja").textContent=el.getAttribute("data-w");
+    vocabPop.querySelector(".vp-reading").textContent=w.reading||"";
+    vocabPop.querySelector(".vp-en").textContent=w.en||"—";
+    el.classList.add("active");vocabPop.classList.add("show");
+    var r=el.getBoundingClientRect(),pw=vocabPop.offsetWidth;
+    var left=r.left+window.pageXOffset,top=r.bottom+window.pageYOffset+6;
+    var maxL=window.pageXOffset+document.documentElement.clientWidth-pw-8;
+    if(left>maxL)left=maxL;if(left<window.pageXOffset+8)left=window.pageXOffset+8;
+    vocabPop.style.left=left+"px";vocabPop.style.top=top+"px";
+  }
+  document.addEventListener("click",function(e){
+    var v=(e.target&&e.target.closest)?e.target.closest(".vocab"):null;
+    if(v){showVocabPop(v);return;}
+    hideVocabPop();
+  });
   var ATTRS=["dark","light","earth","water","fire","wind","divine"];
   var CAT_ORDER=["Normal","Effect","Ritual","Fusion","Synchro","Xyz","Pendulum","Link","Toon","Spirit","Union","Gemini","Tuner","Flip"];
   var FRAMEVAR={normal:"--f-normal",effect:"--f-effect",ritual:"--f-ritual",fusion:"--f-fusion",synchro:"--f-synchro",xyz:"--f-xyz",link:"--f-link",spell:"--f-spell",trap:"--f-trap"};
