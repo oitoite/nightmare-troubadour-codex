@@ -86,6 +86,10 @@
   select.mode{background:#16130d;border:1px solid var(--frame);border-radius:5px;color:var(--ink);font-size:13.5px;padding:11px 13px;font-family:inherit;outline:none;min-width:190px;}
   .search-btn{background:linear-gradient(180deg,#e6c988,#c8a45a);border:1px solid #8a713c;border-radius:5px;color:#2a2010;font-weight:700;font-size:15px;padding:11px 30px;cursor:pointer;font-family:"Cinzel",serif;letter-spacing:.06em;box-shadow:inset 0 1px 0 rgba(255,255,255,.4);}
   .search-btn:hover{filter:brightness(1.05);}
+  .filter-btn{background:#16130d;border:1px solid var(--frame);border-radius:5px;color:var(--gold);font-family:"Cinzel",serif;font-size:13px;letter-spacing:.04em;padding:11px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;}
+  .filter-btn:hover{border-color:var(--gold);}
+  .filter-btn .chev{transition:transform .18s;font-size:10px;}
+  .filter-btn.open .chev{transform:rotate(180deg);}
 
   .filters-bar{background:linear-gradient(180deg,#3a2f1c,#241d12);color:#e6c988;font-size:12.5px;text-align:center;padding:7px;border-top:1px solid #5a4a28;border-bottom:1px solid #16130d;letter-spacing:.06em;margin:14px -14px 0;font-family:"Cinzel",serif;}
 
@@ -385,11 +389,10 @@
       <div id="browsePanel">
         <div class="frame"><div class="frame-pad">
           <div class="search-top">
-            <div class="kw"><input id="q" placeholder="Enter Keyword" autocomplete="off"><span class="clr" id="qclr">✕</span></div>
-            <select class="mode" id="mode"><option value="name">Search by Card Name</option><option value="text">Search by Card Text</option></select>
-            <button class="search-btn" id="searchBtn">Search</button>
+            <div class="kw"><input id="q" placeholder="Search cards — 日本語 or English" autocomplete="off"><span class="clr" id="qclr">✕</span></div>
+            <select class="mode" id="mode"><option value="name">By name</option><option value="text">By card text</option></select>
+            <button class="filter-btn" id="filtersToggle" type="button">Filters <span class="chev">▾</span></button>
           </div>
-          <div class="filters-bar">Search Filters</div>
           <div id="filterPanel" style="display:none;margin-top:14px;">
             <div class="typestrip">
               <button class="typetab active" data-type="">Search All Cards</button>
@@ -411,7 +414,6 @@
             <div class="frow simple"><div class="fcell">Pack · パック <span class="clrx" data-clear="pack">✕</span></div>
               <div><select class="pack" id="f-pack"><option value="">All packs</option></select></div>
             </div>
-            <div class="actions-row"><button class="search-btn" id="searchBtn2">Search</button></div>
           </div>
         </div></div>
 
@@ -476,7 +478,7 @@
     RACES=Object.keys(rs).sort();
     CATS=CAT_ORDER.filter(function(x){return cs[x];});
     if(!PACKS.length)PACKS=Object.keys(ps).sort().map(function(n){return {name:n};});
-    buildControls(); document.getElementById("filterPanel").style.display=""; setStatus(""); apply();
+    buildControls(); setStatus(""); apply();
   }).catch(function(){
     setStatus("");
     document.getElementById("cardGrid").innerHTML='<div class="frame"><div class="setup"><h3>Card data unavailable</h3>Could not load <code>cards.json</code>. Make sure you are opening this page from a web server, not directly from the filesystem.</div></div>';
@@ -499,8 +501,10 @@
     document.querySelectorAll(".typetab").forEach(function(t){t.addEventListener("click",function(){typeSel=t.dataset.type;document.querySelectorAll(".typetab").forEach(function(x){x.classList.toggle("active",x===t);});syncRows();apply();});});
     document.querySelectorAll("[data-clear]").forEach(function(x){x.addEventListener("click",function(){clearSection(x.dataset.clear);});});
     document.getElementById("mode").addEventListener("change",function(e){mode=e.target.value;apply();});
-    document.getElementById("searchBtn").addEventListener("click",apply);
-    document.getElementById("searchBtn2").addEventListener("click",apply);
+    document.getElementById("filtersToggle").addEventListener("click",function(){
+      var fp=document.getElementById("filterPanel"),show=!this.classList.contains("open");
+      fp.style.display=show?"block":"none";this.classList.toggle("open",show);
+    });
     document.getElementById("qclr").addEventListener("click",function(){document.getElementById("q").value="";apply();});
     document.getElementById("q").addEventListener("input",debounced);
     document.getElementById("q").addEventListener("keydown",function(e){if(e.key==="Enter"){clearTimeout(dbt);apply();}});
