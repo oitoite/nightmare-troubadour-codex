@@ -292,6 +292,13 @@
   }
   .lang-btn:last-child { border-right: none; }
   .lang-btn.active { background: rgba(200,164,90,.18); color: var(--gold); font-weight: 700; }
+  .eff-controls{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+  .eff-controls .lang-toggle{margin-bottom:0;}
+  .furi-toggle{display:inline-flex;align-items:center;gap:7px;font-family:"Noto Sans JP",sans-serif;font-size:11.5px;letter-spacing:.02em;padding:6px 13px;border:1px solid var(--line);border-radius:999px;background:var(--panel-2);color:var(--ink-3);cursor:pointer;}
+  .furi-toggle .fdot{width:9px;height:9px;border-radius:50%;border:1px solid currentColor;background:transparent;flex:none;transition:background .15s,box-shadow .15s;}
+  .furi-toggle.active{color:var(--gold);border-color:var(--frame-2);background:rgba(200,164,90,.14);}
+  .furi-toggle.active .fdot{background:var(--gold);border-color:var(--gold);box-shadow:0 0 6px rgba(230,201,136,.55);}
+  body.furigana-off ruby rt{display:none;}
   .d-eff-jp {
     background: #f5eed8;
     border: 1px solid #d9caa0;
@@ -437,6 +444,11 @@
   var CARDS=[],PACKS=[],PACKJA={},RACES=[],CATS=[],VOCAB=[];
 
   var currentLang="jp";
+  var currentFurigana=lsGet("nt-furigana",true);
+  function furiToggleHtml(){return '<button type="button" class="furi-toggle'+(currentFurigana?" active":"")+'" aria-pressed="'+(currentFurigana?"true":"false")+'"><span class="fdot"></span>ふりがな</button>';}
+  function applyFurigana(){document.body.classList.toggle("furigana-off",!currentFurigana);var bs=document.querySelectorAll(".furi-toggle"),i;for(i=0;i<bs.length;i++){bs[i].classList.toggle("active",currentFurigana);bs[i].setAttribute("aria-pressed",currentFurigana?"true":"false");}}
+  document.addEventListener("click",function(e){var b=(e.target&&e.target.closest)?e.target.closest(".furi-toggle"):null;if(!b)return;currentFurigana=!currentFurigana;lsSet("nt-furigana",currentFurigana);applyFurigana();});
+  applyFurigana();
   var ATTRS=["dark","light","earth","water","fire","wind","divine"];
   var CAT_ORDER=["Normal","Effect","Ritual","Fusion","Synchro","Xyz","Pendulum","Link","Toon","Spirit","Union","Gemini","Tuner","Flip"];
   var FRAMEVAR={normal:"--f-normal",effect:"--f-effect",ritual:"--f-ritual",fusion:"--f-fusion",synchro:"--f-synchro",xyz:"--f-xyz",link:"--f-link",spell:"--f-spell",trap:"--f-trap"};
@@ -636,10 +648,10 @@
     var langInit = currentLang || "jp";
     var effHtml = "";
     if (hasJp || hasEn) {
-      effHtml = '<div class="lang-toggle">' +
+      effHtml = '<div class="eff-controls"><div class="lang-toggle">' +
         '<button class="lang-btn' + (langInit === "jp" ? " active" : "") + '" data-lang="jp">日本語</button>' +
         '<button class="lang-btn' + (langInit === "en" ? " active" : "") + '" data-lang="en">English</button>' +
-        '</div>';
+        '</div>' + (hasJp ? furiToggleHtml() : '') + '</div>';
       if (hasJp) effHtml += '<div class="d-eff-jp' + (langInit !== "jp" ? " hidden" : "") + '" id="effJp">' + (c.jpEffHtml || esc(c.jpEff)) + '</div>';
       if (hasEn) effHtml += '<div class="d-eff-en' + (langInit !== "en" ? " hidden" : "") + '" id="effEn">' + esc(c.enEff) + '</div>';
     }
@@ -763,11 +775,15 @@
       var effHtml = "";
       if (mcJp || mcEn) {
         effHtml += '<div class="d-eff-label" style="margin-top:10px">効果テキスト · Card Text</div>';
-        if (mcJp && mcEn) {
-          effHtml += '<div class="lang-toggle">' +
-            '<button class="lang-btn' + (mcLang === "jp" ? " active" : "") + '" data-mylang="jp">日本語</button>' +
-            '<button class="lang-btn' + (mcLang === "en" ? " active" : "") + '" data-mylang="en">English</button>' +
-            '</div>';
+        if (mcJp) {
+          effHtml += '<div class="eff-controls">';
+          if (mcJp && mcEn) {
+            effHtml += '<div class="lang-toggle">' +
+              '<button class="lang-btn' + (mcLang === "jp" ? " active" : "") + '" data-mylang="jp">日本語</button>' +
+              '<button class="lang-btn' + (mcLang === "en" ? " active" : "") + '" data-mylang="en">English</button>' +
+              '</div>';
+          } else { effHtml += '<span></span>'; }
+          effHtml += furiToggleHtml() + '</div>';
         }
         if (mcJp) effHtml += '<div class="d-eff-jp mc-jp' + ((mcEn && mcLang !== "jp") ? " hidden" : "") + '" style="font-size:13px">' + (c.jpEffHtml || esc(c.jpEff)) + '</div>';
         if (mcEn) effHtml += '<div class="d-eff-en mc-en' + ((mcJp && mcLang !== "en") ? " hidden" : "") + '" style="font-size:13px">' + esc(c.enEff) + '</div>';
