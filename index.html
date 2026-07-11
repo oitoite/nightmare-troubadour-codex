@@ -213,6 +213,20 @@
   .setup h3{margin:0 0 8px;color:#fff;}
   .setup code{background:#16130d;border:1px solid var(--frame-2);border-radius:4px;padding:2px 6px;color:var(--gold);}
 
+  /* pack browser */
+  .pack-intro{font-size:12.5px;color:var(--ink-2);margin:2px 2px 14px;}
+  .pack-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;}
+  .pack-tile{text-align:left;background:var(--panel-grad);border:1px solid var(--frame-2);border-left:4px solid var(--gold-2);border-radius:8px;padding:14px 16px;cursor:pointer;color:var(--ink);font-family:inherit;transition:transform .14s ease,box-shadow .18s ease,border-color .18s ease;}
+  .pack-tile:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(0,0,0,.5);border-left-color:var(--gold);}
+  .pt-ja{font-size:16px;font-weight:700;color:#fff;font-family:"Noto Sans JP",sans-serif;line-height:1.3;}
+  .pt-en{font-size:12px;color:var(--gold-2);font-family:"Cinzel",serif;letter-spacing:.03em;margin-top:3px;}
+  .pt-count{font-size:11px;color:var(--ink-3);margin-top:8px;}
+  .pack-head{margin:8px 2px 16px;}
+  .ph-ja{font-size:22px;font-weight:700;color:#fff;font-family:"Noto Sans JP",sans-serif;}
+  .ph-en{font-size:12.5px;color:var(--gold-2);font-family:"Cinzel",serif;letter-spacing:.04em;margin-top:3px;}
+  .pack-rar-hdr{display:flex;align-items:center;gap:8px;font-family:"Cinzel",serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin:18px 2px 10px;padding-bottom:6px;border-bottom:1px solid var(--line);}
+  .pack-rar-hdr span{font-size:11px;color:var(--ink-3);background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:1px 8px;font-family:"Noto Sans JP",sans-serif;letter-spacing:0;}
+
   /* detail */
   .detail{border:2px solid var(--frame-2);border-radius:8px;background:var(--panel-grad);margin-bottom:14px;}
   .detail-h{border-top:5px solid var(--frameCol,#999);border-radius:8px 8px 0 0;}
@@ -400,6 +414,7 @@
   </div></div>
   <div class="knav"><div class="knav-in">
     <button class="tab active" data-tab="browse"><span class="tab-ic">⌕</span><span class="tab-lb">Cards</span></button>
+    <button class="tab" data-tab="packs"><span class="tab-ic">❖</span><span class="tab-lb">Packs</span></button>
     <button class="tab" data-tab="mycards"><span class="tab-ic">★</span><span class="tab-lb">My Cards</span></button>
     <button class="tab" data-tab="dict"><span class="tab-ic">あ</span><span class="tab-lb">Dictionary</span></button>
   </div></div>
@@ -441,7 +456,11 @@
         <div id="status" class="status"><span class="spinner"></span>Opening the database…</div>
         <div id="cardGrid" class="card-grid"></div>
       </div><!-- /browsePanel -->
-      <div id="detail"></div>
+    </section>
+
+    <section id="tab-packs" style="display:none;">
+      <div id="packsList"></div>
+      <div id="packDetail" style="display:none;"></div>
     </section>
 
     <section id="tab-mycards" style="display:none;"><div id="mycardsList"></div></section>
@@ -457,6 +476,8 @@
       </div></div>
       <div id="dictBody"></div>
     </section>
+
+    <div id="detail" style="display:none;"></div>
 
     <div class="foot">Cards &amp; art via <a href="https://yugipedia.com" target="_blank" rel="noopener">Yugipedia</a> and <a href="https://db.ygoresources.com" target="_blank" rel="noopener">YGOResources</a> · attribute icons © Konami.<br>Fan companion for the JP DS release of <em>Yu-Gi-Oh! Duel Monsters: Nightmare Troubadour</em>. Not affiliated with Konami.</div>
   </div>
@@ -621,35 +642,32 @@
     renderGrid(res);
   }
 
+  function makeTile(c){
+    var fc = frameHex(c);
+    var imgHtml = c.img
+      ? '<img class="tile-img" loading="lazy" src="' + esc(c.img) + '" alt="' + esc(c.en) + '" onerror="this.className=\'tile-img ph\';this.removeAttribute(\'src\');this.textContent=\'No image\';">'
+      : '<div class="tile-img ph">No image</div>';
+    var tile = document.createElement("div");
+    tile.className = "card-tile";
+    tile.style.borderColor = fc;
+    tile.style.setProperty("--tile-glow", fc);
+    tile.innerHTML = imgHtml +
+      '<div class="tile-en-overlay">' + esc(c.en || "") + '</div>' +
+      '<div class="tile-body">' +
+        (c.reading && c.reading !== c.ja ? '<span class="tile-ruby">' + esc(c.reading) + '</span>' : '') +
+        '<div class="tile-jp">' + esc(c.ja || c.en || "—") + '</div>' +
+      '</div>';
+    tile.addEventListener("click", function () { showDetail(c); });
+    return tile;
+  }
   function renderGrid(list) {
-    document.getElementById("detail").innerHTML="";
     var host = document.getElementById("cardGrid");
     if (!list.length) {
       host.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="big">No cards found</div><br>Try fewer filters or a shorter search.</div>';
       return;
     }
     host.innerHTML = "";
-    list.slice(0, 400).forEach(function (c) {
-      var fc = frameHex(c);
-      var imgHtml = c.img
-        ? '<img class="tile-img" loading="lazy" src="' + esc(c.img) + '" alt="' + esc(c.en) + '" onerror="this.className=\'tile-img ph\';this.removeAttribute(\'src\');this.textContent=\'No image\';">'
-        : '<div class="tile-img ph">No image</div>';
-      var tile = document.createElement("div");
-      tile.className = "card-tile";
-      tile.style.borderColor = fc;
-      tile.style.setProperty("--tile-glow", fc);
-      tile.innerHTML =
-        imgHtml +
-        '<div class="tile-en-overlay">' + esc(c.en || "") + '</div>' +
-        '<div class="tile-body">' +
-          (c.reading && c.reading !== c.ja
-            ? '<span class="tile-ruby">' + esc(c.reading) + '</span>'
-            : '') +
-          '<div class="tile-jp">' + esc(c.ja || c.en || "—") + '</div>' +
-        '</div>';
-      tile.addEventListener("click", function () { showDetail(c); });
-      host.appendChild(tile);
-    });
+    list.slice(0, 400).forEach(function (c) { host.appendChild(makeTile(c)); });
     if (list.length > 400) {
       var hint = document.createElement("div");
       hint.className = "hint";
@@ -660,8 +678,10 @@
   }
 
   function showDetail(c){
+    hideVocabPop();
     var host=document.getElementById("detail");
-    document.getElementById("browsePanel").style.display="none";
+    ["browse","packs","mycards","dict"].forEach(function(t){var el=document.getElementById("tab-"+t);if(el)el.style.display="none";});
+    host.style.display="";
 
     var isMon = c.cardType === "monster";
     var fc = frameColor(c);
@@ -781,13 +801,13 @@
       });
     }
 
-    var closeDetail=function(){host.innerHTML="";document.getElementById("browsePanel").style.display="";window.scrollTo({top:0,behavior:"smooth"});};
+    var closeDetail=function(){showTabSection(activeTab);window.scrollTo({top:0,behavior:"smooth"});};
     document.getElementById("backBtn").addEventListener("click",closeDetail);
     var backTop=document.getElementById("backTop");if(backTop)backTop.addEventListener("click",closeDetail);
     var sb=document.getElementById("saveBtn");
     sb.addEventListener("click",function(){saveCard(c);sb.textContent="✓ Saved";sb.disabled=true;});
     if(isSaved(c.id)){sb.textContent="✓ In My Cards";sb.disabled=true;}
-    host.querySelectorAll(".pchip[data-pack]").forEach(function(ch){ch.addEventListener("click",function(){document.getElementById("f-pack").value=ch.dataset.pack;host.innerHTML="";document.getElementById("browsePanel").style.display="";apply();window.scrollTo({top:0,behavior:"smooth"});});});
+    host.querySelectorAll(".pchip[data-pack]").forEach(function(ch){ch.addEventListener("click",function(){switchTab("packs");renderPackCards(ch.dataset.pack);});});
     window.scrollTo({top:0,behavior:"smooth"});
   }
 
@@ -941,17 +961,77 @@
     body.innerHTML=html;
   }
 
+  var activeTab="browse";
+  var TABS=["browse","packs","mycards","dict"];
+  function showTabSection(name){
+    hideVocabPop();
+    var d=document.getElementById("detail");d.style.display="none";d.innerHTML="";
+    TABS.forEach(function(t){var el=document.getElementById("tab-"+t);if(el)el.style.display=(t===name)?"":"none";});
+  }
   function switchTab(name){
+    activeTab=name;
     document.querySelectorAll(".tab").forEach(function(t){t.classList.toggle("active",t.dataset.tab===name);});
-    if(name==="browse"){document.getElementById("detail").innerHTML="";document.getElementById("browsePanel").style.display="";}
-    document.getElementById("tab-browse").style.display=name==="browse"?"":"none";
-    document.getElementById("tab-mycards").style.display=name==="mycards"?"":"none";
-    document.getElementById("tab-dict").style.display=name==="dict"?"":"none";
+    showTabSection(name);
     window.scrollTo({top:0,behavior:"smooth"});
     if(name==="mycards")renderMyCards();
     if(name==="dict")renderDict();
+    if(name==="packs")renderPacks();
   }
   document.querySelectorAll(".tab").forEach(function(t){t.addEventListener("click",function(){switchTab(t.dataset.tab);});});
+
+  // ---- Pack browser ----
+  var PACKCARDS=null;
+  function packCardsMap(){
+    if(PACKCARDS)return PACKCARDS;
+    PACKCARDS={};
+    CARDS.forEach(function(c){(c.packs||[]).forEach(function(p){(PACKCARDS[p.pack]=PACKCARDS[p.pack]||[]).push(c);});});
+    return PACKCARDS;
+  }
+  function renderPacks(){
+    var host=document.getElementById("packsList");
+    document.getElementById("packDetail").style.display="none";
+    host.style.display="";
+    var pc=packCardsMap();
+    var html='<div class="pack-intro">The game\'s 23 booster packs. Tap one to see its cards by rarity.</div><div class="pack-grid">';
+    PACKS.forEach(function(p){
+      if(!p.name)return;
+      var n=(pc[p.name]||[]).length;
+      html+='<button class="pack-tile" type="button" data-pack="'+esc(p.name)+'">'+
+        '<div class="pt-ja">'+esc(p.ja||p.name)+'</div>'+
+        '<div class="pt-en">'+esc(p.name)+'</div>'+
+        '<div class="pt-count">'+n+' cards</div>'+
+      '</button>';
+    });
+    html+='</div>';
+    host.innerHTML=html;
+    host.querySelectorAll(".pack-tile").forEach(function(b){b.addEventListener("click",function(){renderPackCards(b.dataset.pack);});});
+  }
+  var RARITY_ORDER=["Ultra Rare","Super Rare","Rare","Common"];
+  function renderPackCards(packName){
+    var list=document.getElementById("packsList");list.style.display="none";
+    var host=document.getElementById("packDetail");host.style.display="";
+    var pj=PACKJA[packName], ja=(pj&&pj.ja)?pj.ja:"";
+    var cards=packCardsMap()[packName]||[];
+    var byRar={};
+    cards.forEach(function(c){
+      var pe=(c.packs||[]).filter(function(p){return p.pack===packName;})[0];
+      var rar=(pe&&pe.rarity)||"Common";
+      (byRar[rar]=byRar[rar]||[]).push(c);
+    });
+    var rars=Object.keys(byRar).sort(function(a,b){var ia=RARITY_ORDER.indexOf(a),ib=RARITY_ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+    host.innerHTML='<button class="d-back" id="packsBack" type="button">← All packs</button>'+
+      '<div class="pack-head"><div class="ph-ja">'+esc(ja||packName)+'</div><div class="ph-en">'+esc(packName)+' · '+cards.length+' cards</div></div>';
+    rars.forEach(function(rar){
+      var g=document.createElement("div");
+      g.innerHTML='<div class="pack-rar-hdr">'+esc(rar)+'<span>'+byRar[rar].length+'</span></div>';
+      var grid=document.createElement("div");grid.className="card-grid";
+      byRar[rar].forEach(function(c){grid.appendChild(makeTile(c));});
+      g.appendChild(grid);
+      host.appendChild(g);
+    });
+    document.getElementById("packsBack").addEventListener("click",function(){renderPacks();window.scrollTo({top:0,behavior:"smooth"});});
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
 })();
 </script>
 </body>
