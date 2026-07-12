@@ -1,8 +1,12 @@
 /* Nightmare Troubadour Card Codex — offline service worker.
    Bump CACHE when the app shell or data changes to force a refresh. */
-var CACHE = "nt-codex-v19";
+var CACHE = "nt-codex-v20";
 var SHELL = [
   "./", "./index.html",
+  "./app/styles.css",
+  "./app/app.js", "./app/state.js", "./app/util.js", "./app/furigana.js",
+  "./app/browse.js", "./app/detail.js", "./app/mycards.js", "./app/dictionary.js",
+  "./app/packs.js", "./app/tabs.js",
   "./cards.json", "./packs.json", "./vocabulary.json", "./game-terms.json",
   "./manifest.webmanifest",
   "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./favicon-32.png"
