@@ -335,6 +335,51 @@
   .vp-en{font-size:12.5px;color:var(--ink-2);margin-top:6px;line-height:1.45;}
   .d-typeline .jp ruby rt { font-size: 9px; color: var(--gold); opacity: .7; }
 
+  /* Card-styled info panel: frame the whole block in the card-type color. */
+  .d-info.cardframe {
+    border: 2px solid var(--frameCol, var(--frame));
+    border-radius: 12px;
+    padding: 16px 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,.015), transparent 120px);
+    box-shadow: 0 0 0 1px rgba(0,0,0,.35) inset, 0 8px 26px rgba(0,0,0,.4);
+  }
+  .d-info.cardframe .d-frame-stripe { display: none; }
+  .d-level.symdef { display: inline-flex; align-items: baseline; gap: 5px; cursor: pointer; border-radius: 4px; padding: 1px 4px; }
+  .d-level .d-level-num { font-family: "Cinzel", serif; font-size: 11px; color: var(--ink-3); letter-spacing: .06em; font-style: normal; }
+  .symdef { cursor: pointer; transition: filter .12s, background .12s; }
+  img.d-attr-icon.symdef:hover, img.d-attr-icon.symdef.active { filter: drop-shadow(0 0 5px var(--gold)); }
+  .d-level.symdef:hover, .d-level.symdef.active,
+  .d-prop-tag.symdef:hover, .d-prop-tag.symdef.active { background: rgba(200,164,90,.18); color: var(--gold); }
+
+  /* EN peek: tappable JP sentences + inline English reveal. */
+  .d-eff-jp .jp-sent { cursor: pointer; border-radius: 3px; transition: background .1s; }
+  .d-eff-jp .jp-sent:hover { background: rgba(120,90,40,.12); }
+  .jp-sent-en {
+    background: #ece2c6;
+    border-left: 3px solid #b89a52;
+    border-radius: 0 4px 4px 0;
+    margin: 6px 0 8px;
+    padding: 7px 11px;
+    font-family: "Cinzel", serif;
+    font-size: 12.5px;
+    line-height: 1.55;
+    letter-spacing: .02em;
+    color: #3a2f18;
+  }
+  .jp-peek { margin-top: 10px; }
+  .jp-peek-btn {
+    font-family: "Cinzel", serif;
+    font-size: 11px;
+    letter-spacing: .06em;
+    background: transparent;
+    color: #6a5a38;
+    border: 1px solid #c3b183;
+    border-radius: 999px;
+    padding: 4px 12px;
+    cursor: pointer;
+  }
+  .jp-peek-btn:hover { border-color: #7a5a28; color: #4a3a18; }
+
   .d-eff-en {
     background: var(--panel-2);
     border: 1px solid var(--line);

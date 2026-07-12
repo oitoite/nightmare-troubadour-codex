@@ -1,6 +1,7 @@
 // Furigana show/hide toggle + tap-to-define popup.
 import { state } from "./state.js";
 import { lsSet } from "./util.js";
+import { symbolInfo } from "./symbols.js";
 
 export function furiToggleHtml() {
   return `<button type="button" class="furi-toggle${state.currentFurigana ? " active" : ""}" aria-pressed="${state.currentFurigana ? "true" : "false"}"><span class="fdot"></span>ふりがな</button>`;
@@ -38,22 +39,26 @@ function vocabMap() {
 let vocabPop = null;
 export function hideVocabPop() {
   if (vocabPop) vocabPop.classList.remove("show");
-  document.querySelectorAll(".vocab.active").forEach((a) => a.classList.remove("active"));
+  document.querySelectorAll(".vocab.active, .symdef.active").forEach((a) => a.classList.remove("active"));
 }
 
-function showVocabPop(el) {
-  const w = vocabMap()[el.getAttribute("data-w")];
-  if (!w) return;
+function ensurePop() {
   if (!vocabPop) {
     vocabPop = document.createElement("div");
     vocabPop.className = "vocab-pop";
     vocabPop.innerHTML = '<div class="vp-ja"></div><div class="vp-reading"></div><div class="vp-en"></div>';
     document.body.appendChild(vocabPop);
   }
+  return vocabPop;
+}
+
+// Shared: fill the popup, mark the trigger active, position it under the trigger.
+function openPop(el, ja, reading, en) {
+  ensurePop();
   hideVocabPop();
-  vocabPop.querySelector(".vp-ja").textContent = el.getAttribute("data-w");
-  vocabPop.querySelector(".vp-reading").textContent = w.reading || "";
-  vocabPop.querySelector(".vp-en").textContent = w.en || "—";
+  vocabPop.querySelector(".vp-ja").textContent = ja;
+  vocabPop.querySelector(".vp-reading").textContent = reading || "";
+  vocabPop.querySelector(".vp-en").textContent = en || "—";
   el.classList.add("active");
   vocabPop.classList.add("show");
   const r = el.getBoundingClientRect(), pw = vocabPop.offsetWidth;
@@ -66,9 +71,24 @@ function showVocabPop(el) {
   vocabPop.style.top = top + "px";
 }
 
+function showVocabPop(el) {
+  const w = vocabMap()[el.getAttribute("data-w")];
+  if (!w) return;
+  openPop(el, el.getAttribute("data-w"), w.reading, w.en);
+}
+
+function showSymbolPop(el) {
+  const info = symbolInfo(el.getAttribute("data-symkind"), el.getAttribute("data-symkey"));
+  if (!info) return;
+  openPop(el, info.label, info.ja, info.meaning);
+}
+
 export function initVocabPopup() {
   document.addEventListener("click", (e) => {
-    const v = e.target && e.target.closest ? e.target.closest(".vocab") : null;
+    if (!e.target || !e.target.closest) return;
+    const sym = e.target.closest(".symdef");
+    if (sym) { showSymbolPop(sym); return; }
+    const v = e.target.closest(".vocab");
     if (v) { showVocabPop(v); return; }
     hideVocabPop();
   });

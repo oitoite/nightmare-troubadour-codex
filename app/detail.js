@@ -6,6 +6,22 @@ import { saveCard, isSaved } from "./mycards.js";
 import { showTabSection, switchTab, TABS } from "./tabs.js";
 import { renderPackCards } from "./packs.js";
 
+// JP effect inner HTML. When JP sentences (split on 。) align 1:1 with English
+// sentences, each JP sentence is tappable to peek its English inline. Otherwise
+// falls back to a single "Show English translation" toggle for the full text.
+function buildJpEffInner(c, hasEn) {
+  const rawHtml = c.jpEffHtml || esc(c.jpEff);
+  if (!hasEn) return rawHtml;
+  const jpChunks = rawHtml.split(/(?<=。)/).filter((s) => s.trim());
+  const enParts = String(c.enEff).split(/(?<=[.;])\s+/).map((s) => s.trim()).filter(Boolean);
+  if (jpChunks.length > 1 && jpChunks.length === enParts.length) {
+    return jpChunks.map((ch, i) => '<span class="jp-sent" data-en="' + esc(enParts[i]) + '">' + ch + '</span>').join("");
+  }
+  return rawHtml +
+    '<div class="jp-peek"><button type="button" class="jp-peek-btn">English translation ⌄</button>' +
+    '<div class="jp-sent-en hidden">' + esc(c.enEff) + '</div></div>';
+}
+
 export function showDetail(c) {
   hideVocabPop();
   const host = document.getElementById("detail");
@@ -28,16 +44,17 @@ export function showDetail(c) {
   // 3. Attribute + level / property row
   let attrRow = "";
   if (isMon) {
-    if (c.attribute) attrRow += '<img class="d-attr-icon" src="' + attrIcon(c.attribute) + '" alt="' + esc(c.attribute.toUpperCase()) + '" title="' + esc(c.attribute.toUpperCase()) + '">';
+    if (c.attribute) attrRow += '<img class="d-attr-icon symdef" data-symkind="attr" data-symkey="' + esc(c.attribute) + '" src="' + attrIcon(c.attribute) + '" alt="' + esc(c.attribute.toUpperCase()) + '" title="' + esc(c.attribute.toUpperCase()) + ' — tap for meaning">';
     if (c.level != null) {
-      attrRow += '<span class="d-level">' + (c.level > 0 ? new Array(c.level + 1).join("★") : "0") + '</span>';
-      attrRow += '<span style="font-family:\'Cinzel\',serif;font-size:11px;color:var(--ink-3);letter-spacing:.06em;margin-left:2px">Lv.' + c.level + '</span>';
+      attrRow += '<span class="d-level symdef" data-symkind="level" data-symkey="' + c.level + '" title="Tap for meaning">' +
+        (c.level > 0 ? new Array(c.level + 1).join("★") : "0") +
+        '<em class="d-level-num">Lv.' + c.level + '</em></span>';
     }
   } else {
     const kind = c.cardType === "spell" ? "魔法" : "罠";
     const propLabel = c.spellTrapTypeJa ? (c.spellTrapTypeJa + kind) : (kind + "カード");
     const propEn = c.spellTrapType ? (c.spellTrapType + " " + (c.cardType === "spell" ? "Spell" : "Trap")) : ((c.cardType === "spell" ? "Spell" : "Trap") + " Card");
-    attrRow += '<span class="d-prop-tag" title="' + esc(propEn) + '">' + esc(propLabel) + '</span>';
+    attrRow += '<span class="d-prop-tag symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType || "Normal") + '" title="' + esc(propEn) + ' — tap for meaning">' + esc(propLabel) + '</span>';
   }
 
   // 4. Type line
@@ -53,7 +70,7 @@ export function showDetail(c) {
       '<button class="lang-btn' + (langInit === "jp" ? " active" : "") + '" data-lang="jp">日本語</button>' +
       '<button class="lang-btn' + (langInit === "en" ? " active" : "") + '" data-lang="en">English</button>' +
       '</div>' + (hasJp ? furiToggleHtml() : '') + '</div>';
-    if (hasJp) effHtml += '<div class="d-eff-jp' + (langInit !== "jp" ? " hidden" : "") + '" id="effJp">' + (c.jpEffHtml || esc(c.jpEff)) + '</div>';
+    if (hasJp) effHtml += '<div class="d-eff-jp' + (langInit !== "jp" ? " hidden" : "") + '" id="effJp">' + buildJpEffInner(c, hasEn) + '</div>';
     if (hasEn) effHtml += '<div class="d-eff-en' + (langInit !== "en" ? " hidden" : "") + '" id="effEn">' + esc(c.enEff) + '</div>';
   }
 
@@ -97,7 +114,7 @@ export function showDetail(c) {
     '<div class="d-backbar"><button class="d-back" id="backTop" type="button">← Back to cards</button></div>' +
     '<div class="detail-b">' +
       '<div class="d-art-col">' + artHtml + '</div>' +
-      '<div class="d-info">' +
+      '<div class="d-info cardframe" style="--frameCol:' + fc + '">' +
         '<div class="d-frame-stripe" style="background:' + fc + '"></div>' +
         '<div class="d-name-block">' + nameHtml + '<div class="d-en-name">' + esc(c.en || "") + '</div></div>' +
         (attrRow ? '<div class="d-attr-row">' + attrRow + '</div>' : '') +
@@ -125,6 +142,26 @@ export function showDetail(c) {
         if (jpEl) jpEl.classList.toggle("hidden", state.currentLang !== "jp");
         if (enEl) enEl.classList.toggle("hidden", state.currentLang !== "en");
       });
+    });
+  }
+
+  // EN peek: tap a JP sentence to reveal its English inline; or the fallback toggle.
+  const effJpEl = document.getElementById("effJp");
+  if (effJpEl) {
+    effJpEl.addEventListener("click", (e) => {
+      if (e.target.closest(".vocab") || e.target.closest(".symdef")) return;
+      const btn = e.target.closest(".jp-peek-btn");
+      if (btn) { const box = btn.nextElementSibling; if (box) box.classList.toggle("hidden"); return; }
+      const sent = e.target.closest(".jp-sent");
+      if (!sent) return;
+      const next = sent.nextElementSibling;
+      if (next && next.classList.contains("jp-sent-en")) { next.remove(); }
+      else {
+        const en = document.createElement("div");
+        en.className = "jp-sent-en";
+        en.textContent = sent.getAttribute("data-en");
+        sent.after(en);
+      }
     });
   }
 
