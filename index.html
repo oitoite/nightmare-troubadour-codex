@@ -215,13 +215,17 @@
 
   /* pack browser */
   .pack-intro{font-size:12.5px;color:var(--ink-2);margin:2px 2px 14px;}
-  .pack-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;}
-  .pack-tile{text-align:left;background:var(--panel-grad);border:1px solid var(--frame-2);border-left:4px solid var(--gold-2);border-radius:8px;padding:14px 16px;cursor:pointer;color:var(--ink);font-family:inherit;transition:transform .14s ease,box-shadow .18s ease,border-color .18s ease;}
+  .pack-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;}
+  .pack-tile{display:flex;gap:13px;align-items:center;text-align:left;background:var(--panel-grad);border:1px solid var(--frame-2);border-left:4px solid var(--gold-2);border-radius:8px;padding:12px 14px;cursor:pointer;color:var(--ink);font-family:inherit;transition:transform .14s ease,box-shadow .18s ease,border-color .18s ease;}
   .pack-tile:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(0,0,0,.5);border-left-color:var(--gold);}
-  .pt-ja{font-size:16px;font-weight:700;color:#fff;font-family:"Noto Sans JP",sans-serif;line-height:1.3;}
-  .pt-en{font-size:12px;color:var(--gold-2);font-family:"Cinzel",serif;letter-spacing:.03em;margin-top:3px;}
-  .pt-count{font-size:11px;color:var(--ink-3);margin-top:8px;}
-  .pack-head{margin:8px 2px 16px;}
+  .pt-img{width:48px;height:96px;object-fit:contain;flex:none;filter:drop-shadow(0 2px 5px rgba(0,0,0,.6));}
+  .pt-img.ph{display:flex;align-items:center;justify-content:center;color:var(--gold-2);opacity:.5;font-size:20px;background:var(--panel-2);border:1px solid var(--line);border-radius:4px;}
+  .pt-text{min-width:0;}
+  .pt-ja{font-size:15px;font-weight:700;color:#fff;font-family:"Noto Sans JP",sans-serif;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pt-en{font-size:11.5px;color:var(--gold-2);font-family:"Cinzel",serif;letter-spacing:.03em;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pt-count{font-size:11px;color:var(--ink-3);margin-top:7px;}
+  .pack-head{display:flex;gap:16px;align-items:center;margin:8px 2px 18px;}
+  .ph-img{width:70px;height:140px;object-fit:contain;flex:none;filter:drop-shadow(0 3px 8px rgba(0,0,0,.6));}
   .ph-ja{font-size:22px;font-weight:700;color:#fff;font-family:"Noto Sans JP",sans-serif;}
   .ph-en{font-size:12.5px;color:var(--gold-2);font-family:"Cinzel",serif;letter-spacing:.04em;margin-top:3px;}
   .pack-rar-hdr{display:flex;align-items:center;gap:8px;font-family:"Cinzel",serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin:18px 2px 10px;padding-bottom:6px;border-bottom:1px solid var(--line);}
@@ -997,9 +1001,12 @@
       if(!p.name)return;
       var n=(pc[p.name]||[]).length;
       html+='<button class="pack-tile" type="button" data-pack="'+esc(p.name)+'">'+
-        '<div class="pt-ja">'+esc(p.ja||p.name)+'</div>'+
-        '<div class="pt-en">'+esc(p.name)+'</div>'+
-        '<div class="pt-count">'+n+' cards</div>'+
+        (p.img?'<img class="pt-img" src="'+esc(p.img)+'" alt="" loading="lazy">':'<div class="pt-img ph">❖</div>')+
+        '<div class="pt-text">'+
+          '<div class="pt-ja">'+esc(p.ja||p.name)+'</div>'+
+          '<div class="pt-en">'+esc(p.name)+'</div>'+
+          '<div class="pt-count">'+n+' cards</div>'+
+        '</div>'+
       '</button>';
     });
     html+='</div>';
@@ -1019,8 +1026,12 @@
       (byRar[rar]=byRar[rar]||[]).push(c);
     });
     var rars=Object.keys(byRar).sort(function(a,b){var ia=RARITY_ORDER.indexOf(a),ib=RARITY_ORDER.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+    var pimg=(pj&&pj.img)?pj.img:"";
     host.innerHTML='<button class="d-back" id="packsBack" type="button">← All packs</button>'+
-      '<div class="pack-head"><div class="ph-ja">'+esc(ja||packName)+'</div><div class="ph-en">'+esc(packName)+' · '+cards.length+' cards</div></div>';
+      '<div class="pack-head">'+
+        (pimg?'<img class="ph-img" src="'+esc(pimg)+'" alt="" loading="lazy">':'')+
+        '<div class="pack-head-txt"><div class="ph-ja">'+esc(ja||packName)+'</div><div class="ph-en">'+esc(packName)+' · '+cards.length+' cards</div></div>'+
+      '</div>';
     rars.forEach(function(rar){
       var g=document.createElement("div");
       g.innerHTML='<div class="pack-rar-hdr">'+esc(rar)+'<span>'+byRar[rar].length+'</span></div>';
