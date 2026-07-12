@@ -1,6 +1,6 @@
 // Card detail view — a global overlay shown from any tab.
 import { state } from "./state.js";
-import { esc, frameColor, attrIcon, typeLineJa, typeLineEn } from "./util.js";
+import { esc, frameColor, frameHex, attrIcon, typeLineJa, typeLineEn } from "./util.js";
 import { furiToggleHtml, hideVocabPop } from "./furigana.js";
 import { saveCard, isSaved } from "./mycards.js";
 import { showTabSection, switchTab, TABS } from "./tabs.js";
@@ -42,19 +42,20 @@ export function showDetail(c) {
     : '<span class="d-ruby-name">' + esc(c.ja || c.en || "—") + '</span>';
 
   // 3. Attribute + level / property row
-  let attrRow = "";
+  // Attribute icon / spell-trap badge (top-right of the card), and level stars (below name).
+  let badgeHtml = "", starsHtml = "";
   if (isMon) {
-    if (c.attribute) attrRow += '<img class="d-attr-icon symdef" data-symkind="attr" data-symkey="' + esc(c.attribute) + '" src="' + attrIcon(c.attribute) + '" alt="' + esc(c.attribute.toUpperCase()) + '" title="' + esc(c.attribute.toUpperCase()) + ' — tap for meaning">';
+    if (c.attribute) badgeHtml = '<img class="d-attr-icon symdef" data-symkind="attr" data-symkey="' + esc(c.attribute) + '" src="' + attrIcon(c.attribute) + '" alt="' + esc(c.attribute.toUpperCase()) + '" title="' + esc(c.attribute.toUpperCase()) + ' — tap for meaning">';
     if (c.level != null) {
-      attrRow += '<span class="d-level symdef" data-symkind="level" data-symkey="' + c.level + '" title="Tap for meaning">' +
+      starsHtml = '<div class="cf-stars"><span class="d-level symdef" data-symkind="level" data-symkey="' + c.level + '" title="Tap for meaning">' +
         (c.level > 0 ? new Array(c.level + 1).join("★") : "0") +
-        '<em class="d-level-num">Lv.' + c.level + '</em></span>';
+        '<em class="d-level-num">Lv.' + c.level + '</em></span></div>';
     }
   } else {
     const kind = c.cardType === "spell" ? "魔法" : "罠";
     const propLabel = c.spellTrapTypeJa ? (c.spellTrapTypeJa + kind) : (kind + "カード");
     const propEn = c.spellTrapType ? (c.spellTrapType + " " + (c.cardType === "spell" ? "Spell" : "Trap")) : ((c.cardType === "spell" ? "Spell" : "Trap") + " Card");
-    attrRow += '<span class="d-prop-tag symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType || "Normal") + '" title="' + esc(propEn) + ' — tap for meaning">' + esc(propLabel) + '</span>';
+    badgeHtml = '<span class="d-prop-tag symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType || "Normal") + '" title="' + esc(propEn) + ' — tap for meaning">' + esc(propLabel) + '</span>';
   }
 
   // 4. Type line
@@ -77,9 +78,9 @@ export function showDetail(c) {
   // 6. ATK / DEF
   let statsHtml = "";
   if (isMon && (c.atk != null || c.def != null)) {
-    statsHtml = '<div class="d-stats">' +
-      '<div class="d-stat"><small>ATK</small><span>' + (c.atk == null ? "?" : c.atk) + '</span></div>' +
-      '<div class="d-stat"><small>DEF</small><span>' + (c.def == null ? "?" : c.def) + '</span></div>' +
+    statsHtml = '<div class="cf-footer">' +
+      '<span class="cf-ad">ATK<b>/</b> ' + (c.atk == null ? "?" : c.atk) + '</span>' +
+      '<span class="cf-ad">DEF<b>/</b> ' + (c.def == null ? "?" : c.def) + '</span>' +
       '</div>';
   }
 
@@ -114,19 +115,25 @@ export function showDetail(c) {
     '<div class="d-backbar"><button class="d-back" id="backTop" type="button">← Back to cards</button></div>' +
     '<div class="detail-b">' +
       '<div class="d-art-col">' + artHtml + '</div>' +
-      '<div class="d-info cardframe" style="--frameCol:' + fc + '">' +
-        '<div class="d-frame-stripe" style="background:' + fc + '"></div>' +
-        '<div class="d-name-block">' + nameHtml + '<div class="d-en-name">' + esc(c.en || "") + '</div></div>' +
-        (attrRow ? '<div class="d-attr-row">' + attrRow + '</div>' : '') +
-        '<div class="d-typeline"><div class="jp">' + (c.typeLineJaHtml || esc(typeJa)) + '</div><div class="en">' + esc(typeEn) + '</div></div>' +
-        (effHtml ? '<div class="d-eff-wrap">' + effHtml + '</div>' : '') +
-        statsHtml +
-        passcodeHtml +
-        packChips +
-        linksHtml +
-        '<div class="d-actions">' +
-          '<button class="search-btn" id="saveBtn" style="font-size:13px;padding:8px 18px;">✦ Save to My Cards</button>' +
-          '<button class="pchip" id="backBtn" style="cursor:pointer;margin-left:8px;">← Back</button>' +
+      '<div class="d-info">' +
+        '<div class="cardface" style="--frameCol:' + frameHex(c) + '">' +
+          '<div class="cf-top">' +
+            '<div class="cf-name">' + nameHtml + '<div class="cf-en">' + esc(c.en || "") + '</div></div>' +
+            (badgeHtml ? '<div class="cf-badge">' + badgeHtml + '</div>' : '') +
+          '</div>' +
+          starsHtml +
+          '<div class="cf-typeline"><div class="jp">' + (c.typeLineJaHtml || esc(typeJa)) + '</div><div class="en">' + esc(typeEn) + '</div></div>' +
+          (effHtml ? '<div class="cf-textbox">' + effHtml + '</div>' : '') +
+          statsHtml +
+        '</div>' +
+        '<div class="d-extra">' +
+          passcodeHtml +
+          packChips +
+          linksHtml +
+          '<div class="d-actions">' +
+            '<button class="search-btn" id="saveBtn" style="font-size:13px;padding:8px 18px;">✦ Save to My Cards</button>' +
+            '<button class="pchip" id="backBtn" style="cursor:pointer;margin-left:8px;">← Back</button>' +
+          '</div>' +
         '</div>' +
       '</div>' +
     '</div></div>';

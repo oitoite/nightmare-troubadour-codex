@@ -335,15 +335,39 @@
   .vp-en{font-size:12.5px;color:var(--ink-2);margin-top:6px;line-height:1.45;}
   .d-typeline .jp ruby rt { font-size: 9px; color: var(--gold); opacity: .7; }
 
-  /* Card-styled info panel: frame the whole block in the card-type color. */
-  .d-info.cardframe {
-    border: 2px solid var(--frameCol, var(--frame));
-    border-radius: 12px;
-    padding: 16px 18px;
-    background: linear-gradient(180deg, rgba(255,255,255,.015), transparent 120px);
-    box-shadow: 0 0 0 1px rgba(0,0,0,.35) inset, 0 8px 26px rgba(0,0,0,.4);
+  /* Authentic card-face layout: data points positioned like a real card. */
+  .cardface {
+    border: 3px solid var(--frameCol, #c9a44b);
+    border-radius: 13px;
+    padding: 14px 15px 15px;
+    background: color-mix(in srgb, var(--frameCol, #c9a44b) 38%, #f3e9cd);
+    box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.4) inset;
   }
-  .d-info.cardframe .d-frame-stripe { display: none; }
+  .cf-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .cf-name { min-width: 0; }
+  .cf-name .d-ruby-name { color: #1c1608; }
+  .cf-name .d-ruby-name rt { color: #4a3a1a; opacity: .8; }
+  .cf-en { font-family: "Cinzel", serif; font-size: 13px; letter-spacing: .05em; color: #3a2f16; opacity: .82; margin-top: 1px; }
+  .cf-badge { flex: none; display: flex; align-items: center; }
+  .cf-badge .d-attr-icon { width: 34px; height: 34px; filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
+  .cf-badge .d-prop-tag { background: rgba(255,250,235,.55); color: #2a2010; border-color: rgba(0,0,0,.28); font-size: 12px; }
+  .cf-stars { margin: 8px 0 4px; text-align: right; }
+  .cf-stars .d-level { color: #d9822b; font-size: 16px; letter-spacing: 1.5px; }
+  .cf-stars .d-level-num { color: #3a2f16; opacity: .7; }
+  .cf-typeline { margin: 9px 0 10px; padding: 6px 11px; background: rgba(255,250,235,.5); border-radius: 4px; border: 1px solid rgba(0,0,0,.16); }
+  .cf-typeline .jp { font-size: 14px; color: #241c0c; font-weight: 700; }
+  .cf-typeline .jp ruby rt { font-size: 9px; color: #6a5628; opacity: .95; }
+  .cf-typeline .en { font-size: 11px; color: #5a4a24; font-family: "Cinzel", serif; margin-top: 1px; }
+  .cf-footer { display: flex; justify-content: flex-end; gap: 24px; margin-top: 12px; padding-top: 8px; border-top: 2px solid rgba(0,0,0,.26); }
+  .cf-ad { font-family: "Cinzel", serif; font-weight: 700; font-size: 21px; color: #1c1608; letter-spacing: .02em; }
+  .cf-ad b { color: #8a1a1a; margin: 0 1px; }
+  .cardface .d-eff-en { background: #efe6cc; border-color: #cbb98a; color: #2a2314; }
+  .cardface .eff-controls .lang-btn { background: rgba(30,22,10,.06); color: #5a4a24; }
+  .cardface .eff-controls .lang-btn.active { background: rgba(140,100,30,.2); color: #3a2a08; }
+  .cardface .eff-controls .furi-toggle { background: rgba(30,22,10,.05); color: #5a4a24; border-color: rgba(0,0,0,.2); }
+  .cardface .eff-controls .furi-toggle.active { color: #7a5410; border-color: #b8933f; background: rgba(180,140,50,.16); }
+  .d-extra { margin-top: 16px; }
+  .d-extra .d-packs { border-top-color: var(--line-2); }
   .d-level.symdef { display: inline-flex; align-items: baseline; gap: 5px; cursor: pointer; border-radius: 4px; padding: 1px 4px; }
   .d-level .d-level-num { font-family: "Cinzel", serif; font-size: 11px; color: var(--ink-3); letter-spacing: .06em; font-style: normal; }
   .symdef { cursor: pointer; transition: filter .12s, background .12s; }
