@@ -123,6 +123,9 @@
 
   .toolbar{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 10px;gap:10px;flex-wrap:wrap;}
   .count{font-size:13px;color:var(--ink-2);}
+  .sortlbl{display:flex;align-items:center;gap:7px;font-family:"Cinzel",serif;font-size:11px;letter-spacing:.06em;color:var(--ink-3);text-transform:uppercase;}
+  .sortsel{background:#16130d;border:1px solid var(--frame);border-radius:5px;color:var(--ink);font-size:12.5px;padding:6px 9px;font-family:inherit;outline:none;cursor:pointer;}
+  .sortsel:focus{border-color:var(--gold);}
   .count b{color:#fff;}
 
 
@@ -456,7 +459,15 @@
           </div>
         </div></div>
 
-        <div class="toolbar"><div class="count" id="count"></div></div>
+        <div class="toolbar"><div class="count" id="count"></div>
+          <label class="sortlbl">Sort<select class="sortsel" id="sortSel">
+            <option value="reading">あいうえお</option>
+            <option value="atk">ATK ↓</option>
+            <option value="def">DEF ↓</option>
+            <option value="level">Level ↓</option>
+            <option value="en">A–Z</option>
+          </select></label>
+        </div>
         <div id="status" class="status"><span class="spinner"></span>Opening the database…</div>
         <div id="cardGrid" class="card-grid"></div>
       </div><!-- /browsePanel -->
@@ -527,7 +538,7 @@
   var CAT_ORDER=["Normal","Effect","Ritual","Fusion","Synchro","Xyz","Pendulum","Link","Toon","Spirit","Union","Gemini","Tuner","Flip"];
   var FRAMEVAR={normal:"--f-normal",effect:"--f-effect",ritual:"--f-ritual",fusion:"--f-fusion",synchro:"--f-synchro",xyz:"--f-xyz",link:"--f-link",spell:"--f-spell",trap:"--f-trap"};
   var FRAME={normal:"#c9a44b",effect:"#c07a3a",ritual:"#4a74b0",fusion:"#8a5aa8",synchro:"#c0bfbe",xyz:"#555",link:"#3a7a9a",spell:"#1d9e75",trap:"#c2185b"};
-  var activeAttrs={},activeRaces={},activeCats={},activeLevels={},typeSel="",mode="name";
+  var activeAttrs={},activeRaces={},activeCats={},activeLevels={},typeSel="",mode="name",sortMode="reading";
 
   function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m];});}
   function lsGet(k,f){try{var v=LS.getItem(k);return v==null?f:JSON.parse(v);}catch(e){return f;}}
@@ -574,6 +585,7 @@
     document.querySelectorAll(".typetab").forEach(function(t){t.addEventListener("click",function(){typeSel=t.dataset.type;document.querySelectorAll(".typetab").forEach(function(x){x.classList.toggle("active",x===t);});syncRows();apply();});});
     document.querySelectorAll("[data-clear]").forEach(function(x){x.addEventListener("click",function(){clearSection(x.dataset.clear);});});
     document.getElementById("mode").addEventListener("change",function(e){mode=e.target.value;apply();});
+    document.getElementById("sortSel").addEventListener("change",function(e){sortMode=e.target.value;apply();});
     document.getElementById("filtersToggle").addEventListener("click",function(){
       var fp=document.getElementById("filterPanel"),show=!this.classList.contains("open");
       fp.style.display=show?"block":"none";this.classList.toggle("open",show);
@@ -618,6 +630,25 @@
   function num(id){var v=document.getElementById(id).value.trim();return v===""?null:parseInt(v,10);}
   function matchPacks(query){var q=query.toLowerCase(),o={};PACKS.forEach(function(p){if((p.name&&p.name.toLowerCase().indexOf(q)>=0)||(p.ja&&p.ja.indexOf(query)>=0)||(p.romaji&&p.romaji.toLowerCase().indexOf(q)>=0))o[p.name]=1;});return o;}
 
+  // Build an anchored regex from a query that uses * as a wildcard (e.g. "*の" = ends with の).
+  function wildcardRe(s){try{return new RegExp("^"+s.replace(/[.+?^${}()|[\]\\]/g,"\\$&").replace(/\*/g,".*")+"$");}catch(e){return null;}}
+  // Card-name match: kana-insensitive (hiragana↔katakana) + * wildcards; falls back to substring.
+  function nameMatch(c,q){
+    var qH=katToHira(q),qL=q.toLowerCase();
+    var jaH=katToHira(c.ja||""),rdH=katToHira(c.reading||""),en=(c.en||"").toLowerCase();
+    if(q.indexOf("*")>=0){
+      var reH=wildcardRe(qH),reL=wildcardRe(qL);
+      return !!((reH&&(reH.test(jaH)||reH.test(rdH)))||(reL&&reL.test(en)));
+    }
+    return jaH.indexOf(qH)>=0||rdH.indexOf(qH)>=0||en.indexOf(qL)>=0;
+  }
+  function sortCards(list){
+    if(sortMode==="atk")return list.sort(function(a,b){return (b.atk==null?-1:b.atk)-(a.atk==null?-1:a.atk);});
+    if(sortMode==="def")return list.sort(function(a,b){return (b.def==null?-1:b.def)-(a.def==null?-1:a.def);});
+    if(sortMode==="level")return list.sort(function(a,b){return (b.level==null?-1:b.level)-(a.level==null?-1:a.level);});
+    if(sortMode==="en")return list.sort(function(a,b){return (a.en||"").localeCompare(b.en||"");});
+    return list.sort(function(a,b){var ka=katToHira(a.reading||a.ja||""),kb=katToHira(b.reading||b.ja||"");return ka<kb?-1:ka>kb?1:0;});
+  }
   function apply(){
     var q=document.getElementById("q").value.trim(),qL=q.toLowerCase();
     var pack=document.getElementById("f-pack").value;
@@ -636,12 +667,12 @@
       if(dmin!=null&&(c.def==null||c.def<dmin))return false;
       if(dmax!=null&&(c.def==null||c.def>dmax))return false;
       if(q){
-        if(mode==="text"){if(!((c.jpEff&&c.jpEff.indexOf(q)>=0)||(c.enEff&&c.enEff.toLowerCase().indexOf(qL)>=0)))return false;}
-        else{var inCard=(c.ja&&c.ja.indexOf(q)>=0)||(c.reading&&c.reading.indexOf(q)>=0)||(c.en&&c.en.toLowerCase().indexOf(qL)>=0);
-          var inPack=(c.packs||[]).some(function(p){return packMatch[p.pack];});if(!inCard&&!inPack)return false;}
+        if(mode==="text"){var qH=katToHira(q);if(!(katToHira(c.jpEff||"").indexOf(qH)>=0||(c.enEff&&c.enEff.toLowerCase().indexOf(qL)>=0)))return false;}
+        else{var inCard=nameMatch(c,q);var inPack=(c.packs||[]).some(function(p){return packMatch[p.pack];});if(!inCard&&!inPack)return false;}
       }
       return true;
     });
+    sortCards(res);
     document.getElementById("count").innerHTML="<b>"+res.length+"</b> of "+CARDS.length+" cards";
     renderGrid(res);
   }
