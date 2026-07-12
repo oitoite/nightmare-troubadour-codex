@@ -1,6 +1,6 @@
 /* Nightmare Troubadour Card Codex — offline service worker.
    Bump CACHE when the app shell or data changes to force a refresh. */
-var CACHE = "nt-codex-v21";
+var CACHE = "nt-codex-v22";
 var SHELL = [
   "./", "./index.html",
   "./app/styles.css",
