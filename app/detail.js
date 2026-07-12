@@ -1,6 +1,6 @@
 // Card detail view — a global overlay shown from any tab.
 import { state } from "./state.js";
-import { esc, frameColor, frameHex, attrIcon, typeLineJa, typeLineEn } from "./util.js";
+import { esc, frameColor, frameHex, attrIcon, stIcon, typeLineJa, typeLineEn } from "./util.js";
 import { furiToggleHtml, hideVocabPop } from "./furigana.js";
 import { saveCard, isSaved } from "./mycards.js";
 import { showTabSection, switchTab, TABS } from "./tabs.js";
@@ -17,9 +17,8 @@ function buildJpEffInner(c, hasEn) {
   if (jpChunks.length > 1 && jpChunks.length === enParts.length) {
     return jpChunks.map((ch, i) => '<span class="jp-sent" data-en="' + esc(enParts[i]) + '">' + ch + '</span>').join("");
   }
-  return rawHtml +
-    '<div class="jp-peek"><button type="button" class="jp-peek-btn">English translation ⌄</button>' +
-    '<div class="jp-sent-en hidden">' + esc(c.enEff) + '</div></div>';
+  // Sentences don't split 1:1 — no inline peek; the JP/EN toggle covers full translation.
+  return rawHtml;
 }
 
 export function showDetail(c) {
@@ -55,7 +54,10 @@ export function showDetail(c) {
     const kind = c.cardType === "spell" ? "魔法" : "罠";
     const propLabel = c.spellTrapTypeJa ? (c.spellTrapTypeJa + kind) : (kind + "カード");
     const propEn = c.spellTrapType ? (c.spellTrapType + " " + (c.cardType === "spell" ? "Spell" : "Trap")) : ((c.cardType === "spell" ? "Spell" : "Trap") + " Card");
-    badgeHtml = '<span class="d-prop-tag symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType || "Normal") + '" title="' + esc(propEn) + ' — tap for meaning">' + esc(propLabel) + '</span>';
+    const propIcon = stIcon(c.spellTrapType);
+    badgeHtml = propIcon
+      ? '<img class="d-attr-icon symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType) + '" src="' + propIcon + '" alt="' + esc(propEn) + '" title="' + esc(propEn) + ' — tap for meaning">'
+      : '<span class="d-prop-tag symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType || "Normal") + '" title="' + esc(propEn) + ' — tap for meaning">' + esc(propLabel) + '</span>';
   }
 
   // 4. Type line

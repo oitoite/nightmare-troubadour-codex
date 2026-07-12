@@ -14,6 +14,17 @@ export const lsSet = (k, v) => { try { LS.setItem(k, JSON.stringify(v)); } catch
 export const attrIcon = (a) =>
   `https://www.db.yugioh-card.com/yugiohdb/external/image/parts/attribute/attribute_icon_${a}.png`;
 
+// Authentic Spell/Trap property icons. Normal Spells/Traps have no symbol.
+export const ST_ICON = {
+  "Quick-Play": "https://ms.yugipedia.com/e/eb/Quick-Play.png",
+  "Continuous": "https://ms.yugipedia.com/7/78/Continuous.png",
+  "Equip": "https://ms.yugipedia.com/5/56/Equip.png",
+  "Field": "https://ms.yugipedia.com/f/f1/Field.png",
+  "Ritual": "https://ms.yugipedia.com/7/70/Ritual.png",
+  "Counter": "https://ms.yugipedia.com/c/cc/Counter.png",
+};
+export const stIcon = (t) => ST_ICON[t] || null;
+
 export const FRAMEVAR = { normal: "--f-normal", effect: "--f-effect", ritual: "--f-ritual", fusion: "--f-fusion", synchro: "--f-synchro", xyz: "--f-xyz", link: "--f-link", spell: "--f-spell", trap: "--f-trap" };
 export const FRAME = { normal: "#c9a44b", effect: "#c07a3a", ritual: "#4a74b0", fusion: "#8a5aa8", synchro: "#c0bfbe", xyz: "#555", link: "#3a7a9a", spell: "#1d9e75", trap: "#c2185b" };
 
