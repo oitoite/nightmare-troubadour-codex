@@ -339,10 +339,11 @@
   .cardface {
     border: 3px solid var(--frameCol, #c9a44b);
     border-radius: 13px;
-    padding: 14px 15px 15px;
+    padding: 13px 15px 12px;
     background: color-mix(in srgb, var(--frameCol, #c9a44b) 38%, #f3e9cd);
     box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.4) inset;
   }
+  .cf-textbox .d-eff-jp, .cf-textbox .d-eff-en { margin-bottom: 0; }
   .cf-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
   .cf-name { min-width: 0; }
   .cf-name .d-ruby-name { color: #1c1608; }
@@ -366,11 +367,12 @@
   .cf-ad { font-family: "Cinzel", serif; font-weight: 700; font-size: 21px; color: #1c1608; letter-spacing: .02em; }
   .cf-ad b { color: #8a1a1a; margin: 0 1px; }
   .cardface .d-eff-en { background: #efe6cc; border-color: #cbb98a; color: #2a2314; }
-  .cardface .eff-controls .lang-btn { background: rgba(30,22,10,.06); color: #5a4a24; }
-  .cardface .eff-controls .lang-btn.active { background: rgba(140,100,30,.2); color: #3a2a08; }
-  .cardface .eff-controls .furi-toggle { background: rgba(30,22,10,.05); color: #5a4a24; border-color: rgba(0,0,0,.2); }
-  .cardface .eff-controls .furi-toggle.active { color: #7a5410; border-color: #b8933f; background: rgba(180,140,50,.16); }
-  .d-extra { margin-top: 16px; }
+  /* Passcode inside the card, bottom-left, like the printed card. */
+  .cf-passcode { font-family: "Cinzel", serif; font-size: 10px; letter-spacing: .14em; color: rgba(28,22,8,.5); margin-top: 12px; }
+  /* Viewing toggles live just below the card (off the card face). */
+  .cf-toolbar { margin: 12px 0 2px; }
+  .cf-toolbar .eff-controls { justify-content: flex-start; gap: 12px; margin-bottom: 0; }
+  .d-extra { margin-top: 14px; }
   .d-extra .d-packs { border-top-color: var(--line-2); }
   .d-level.symdef { display: inline-flex; align-items: baseline; gap: 5px; cursor: pointer; border-radius: 4px; padding: 1px 4px; }
   .d-level .d-level-num { font-family: "Cinzel", serif; font-size: 11px; color: var(--ink-3); letter-spacing: .06em; font-style: normal; }

@@ -102,9 +102,6 @@ export function showDetail(c) {
       '</div>';
   }
 
-  // 7. Passcode
-  const passcodeHtml = c.passcode ? '<div class="d-passcode">✦ ' + esc(c.passcode) + '</div>' : '';
-
   // 8. Pack filter chips
   let packChips = "";
   if (c.packs && c.packs.length) {
@@ -135,17 +132,19 @@ export function showDetail(c) {
     '<div class="cf-name">' + nameHtml + '<div class="cf-en">' + esc(c.en || "") + '</div></div>' +
     (badgeHtml ? '<div class="cf-badge">' + badgeHtml + '</div>' : '') +
     '</div>';
-  const hasText = !!(effControls || effBody);
+  const cardPass = c.passcode ? '<div class="cf-passcode">' + esc(c.passcode) + '</div>' : '';
   let cardInner;
   if (isMon) {
-    const textbox = hasText
-      ? '<div class="cf-textbox">' + effControls + typeLineBlock + effBody + '</div>'
-      : typeLineBlock;
-    cardInner = cfTop + starsHtml + textbox + statsHtml;
+    // Monster: type line just above the effect, ATK/DEF footer, passcode last.
+    const body = effBody ? '<div class="cf-textbox">' + typeLineBlock + effBody + '</div>' : typeLineBlock;
+    cardInner = cfTop + starsHtml + body + statsHtml + cardPass;
   } else {
+    // Spell/Trap: right-aligned type line under the medallion, then the effect.
     cardInner = cfTop + typeLineBlock +
-      (hasText ? '<div class="cf-textbox">' + effControls + effBody + '</div>' : '');
+      (effBody ? '<div class="cf-textbox">' + effBody + '</div>' : '') + cardPass;
   }
+  // Viewing controls (JP/EN + furigana) sit OUTSIDE the card — they're app tools, not on the real card.
+  const controlsOut = effControls ? '<div class="cf-toolbar">' + effControls + '</div>' : '';
 
   host.innerHTML =
     '<div class="detail"><div class="detail-h" style="--frameCol:' + fc + '"></div>' +
@@ -154,8 +153,8 @@ export function showDetail(c) {
       '<div class="d-art-col">' + artHtml + '</div>' +
       '<div class="d-info">' +
         '<div class="cardface" style="--frameCol:' + frameHex(c) + '">' + cardInner + '</div>' +
+        controlsOut +
         '<div class="d-extra">' +
-          passcodeHtml +
           packChips +
           linksHtml +
           '<div class="d-actions">' +
