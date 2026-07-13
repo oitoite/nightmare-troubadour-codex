@@ -350,8 +350,9 @@
   .cf-en { font-family: "Cinzel", serif; font-size: 13px; letter-spacing: .05em; color: #3a2f16; opacity: .82; margin-top: 1px; }
   .cf-badge { flex: none; display: flex; align-items: center; }
   .cf-badge .d-attr-icon { width: 34px; height: 34px; filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
-  .cf-subtype { margin: 8px 0 2px; }
-  .cf-subtype .d-prop-tag { background: rgba(255,250,235,.55); color: #2a2010; border-color: rgba(0,0,0,.28); font-size: 12px; letter-spacing: .04em; }
+  /* Sub-type symbol inline in the type line, e.g. 【魔法カード ✚】. */
+  .cf-subicon { height: 18px; width: 18px; vertical-align: -4px; margin: 0 1px; cursor: pointer; }
+  .cf-subicon:hover, .cf-subicon.active { filter: drop-shadow(0 0 3px var(--gold)); }
   .cf-stars { margin: 8px 0 4px; text-align: right; }
   .cf-stars .d-level { color: #d9822b; font-size: 16px; letter-spacing: 1.5px; }
   .cf-stars .d-level-num { color: #3a2f16; opacity: .7; }

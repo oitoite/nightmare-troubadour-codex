@@ -21,6 +21,16 @@ export const ST_TYPE_ICON = {
   trap: "https://ms.yugipedia.com/a/aa/TRAP-JP.svg",
 };
 
+// Sub-type symbol shown inline in the type line (【魔法カード ✚】). Normal has none.
+export const ST_SUBTYPE_ICON = {
+  "Quick-Play": "https://ms.yugipedia.com/0/05/Quick-Play.svg",
+  "Continuous": "https://ms.yugipedia.com/7/7c/Continuous.svg",
+  "Equip": "https://ms.yugipedia.com/9/90/Equip.svg",
+  "Field": "https://ms.yugipedia.com/1/14/Field.svg",
+  "Ritual": "https://ms.yugipedia.com/f/f5/Ritual.svg",
+  "Counter": "https://ms.yugipedia.com/0/06/Counter.svg",
+};
+
 export const FRAMEVAR = { normal: "--f-normal", effect: "--f-effect", ritual: "--f-ritual", fusion: "--f-fusion", synchro: "--f-synchro", xyz: "--f-xyz", link: "--f-link", spell: "--f-spell", trap: "--f-trap" };
 export const FRAME = { normal: "#c9a44b", effect: "#c07a3a", ritual: "#4a74b0", fusion: "#8a5aa8", synchro: "#c0bfbe", xyz: "#555", link: "#3a7a9a", spell: "#1d9e75", trap: "#c2185b" };
 

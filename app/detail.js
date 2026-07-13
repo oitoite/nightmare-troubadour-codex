@@ -1,6 +1,6 @@
 // Card detail view — a global overlay shown from any tab.
 import { state } from "./state.js";
-import { esc, frameColor, frameHex, attrIcon, ST_TYPE_ICON, typeLineJa, typeLineEn } from "./util.js";
+import { esc, frameColor, frameHex, attrIcon, ST_TYPE_ICON, ST_SUBTYPE_ICON, typeLineJa, typeLineEn } from "./util.js";
 import { furiToggleHtml, hideVocabPop } from "./furigana.js";
 import { saveCard, isSaved } from "./mycards.js";
 import { showTabSection, switchTab, TABS } from "./tabs.js";
@@ -44,7 +44,7 @@ export function showDetail(c) {
   // Top-right badge: monsters show the attribute icon; spells/traps show the
   // 魔/罠 card-type medallion (on every spell/trap, matching real cards). Below
   // the name: level stars (monsters) or the sub-type tag (spells/traps).
-  let badgeHtml = "", starsHtml = "", subtypeHtml = "";
+  let badgeHtml = "", starsHtml = "";
   if (isMon) {
     if (c.attribute) badgeHtml = '<img class="d-attr-icon symdef" data-symkind="attr" data-symkey="' + esc(c.attribute) + '" src="' + attrIcon(c.attribute) + '" alt="' + esc(c.attribute.toUpperCase()) + '" title="' + esc(c.attribute.toUpperCase()) + ' — tap for meaning">';
     if (c.level != null) {
@@ -58,12 +58,25 @@ export function showDetail(c) {
     const propEn = c.spellTrapType ? (c.spellTrapType + " " + (c.cardType === "spell" ? "Spell" : "Trap")) : ((c.cardType === "spell" ? "Spell" : "Trap") + " Card");
     const stImg = ST_TYPE_ICON[c.cardType];
     badgeHtml = '<img class="d-attr-icon symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType || "Normal") + '" src="' + stImg + '" alt="' + esc(propEn) + '" title="' + esc(propEn) + ' — tap for meaning">';
-    subtypeHtml = '<div class="cf-subtype"><span class="d-prop-tag symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType || "Normal") + '" title="' + esc(propEn) + ' — tap for meaning">' + esc(propLabel) + '</span></div>';
   }
 
-  // 4. Type line
+  // 4. Type line. Monsters carry their own bracketed line; spells/traps get
+  // bracketed here plus the sub-type symbol inline, e.g. 【魔法カード ✚】.
   const typeJa = typeLineJa(c);
   const typeEn = typeLineEn(c);
+  let typeJaHtml;
+  if (isMon) {
+    typeJaHtml = c.typeLineJaHtml || esc(typeJa);
+  } else {
+    const inner = c.typeLineJaHtml || esc(typeJa);
+    const subIcon = ST_SUBTYPE_ICON[c.spellTrapType];
+    let iconHtml = "";
+    if (subIcon) {
+      const subEn = c.spellTrapType + " " + (c.cardType === "spell" ? "Spell" : "Trap");
+      iconHtml = ' <img class="cf-subicon symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType) + '" src="' + subIcon + '" alt="' + esc(subEn) + '" title="' + esc(subEn) + ' — tap for meaning">';
+    }
+    typeJaHtml = "【" + inner + iconHtml + "】";
+  }
 
   // 5. Effect text with JP/EN toggle
   const hasJp = !!c.jpEff, hasEn = !!c.enEff;
@@ -124,8 +137,8 @@ export function showDetail(c) {
             '<div class="cf-name">' + nameHtml + '<div class="cf-en">' + esc(c.en || "") + '</div></div>' +
             (badgeHtml ? '<div class="cf-badge">' + badgeHtml + '</div>' : '') +
           '</div>' +
-          starsHtml + subtypeHtml +
-          '<div class="cf-typeline"><div class="jp">' + (c.typeLineJaHtml || esc(typeJa)) + '</div><div class="en">' + esc(typeEn) + '</div></div>' +
+          starsHtml +
+          '<div class="cf-typeline"><div class="jp">' + typeJaHtml + '</div><div class="en">' + esc(typeEn) + '</div></div>' +
           (effHtml ? '<div class="cf-textbox">' + effHtml + '</div>' : '') +
           statsHtml +
         '</div>' +
