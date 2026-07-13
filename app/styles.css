@@ -221,8 +221,8 @@
   .d-backbar{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#241d12,rgba(22,19,13,.97));border-bottom:1px solid var(--line);padding:9px 14px;}
   .d-back{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--frame);border-radius:6px;color:var(--gold);font-family:"Cinzel",serif;font-size:12px;letter-spacing:.05em;padding:7px 15px;cursor:pointer;}
   .d-back:hover{border-color:var(--gold);background:rgba(200,164,90,.12);}
-  .detail-b{padding:20px;display:grid;grid-template-columns:360px 1fr;gap:28px;align-items:start;}
-  .d-art-col{position:sticky;top:20px;}
+  .detail-b{padding:20px;display:grid;grid-template-columns:360px 360px;justify-content:center;gap:36px;align-items:start;}
+  .d-art-col{align-self:start;}
   @media (max-width:680px){
     .detail-b{grid-template-columns:1fr;gap:16px;padding:16px;}
     .d-art-col{position:static;max-width:300px;margin:0 auto;}
@@ -342,8 +342,17 @@
     padding: 13px 15px 12px;
     background: color-mix(in srgb, var(--frameCol, #c9a44b) 38%, #f3e9cd);
     box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.4) inset;
+    aspect-ratio: 59 / 86;          /* same portrait shape as the card scan on the left */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
-  .cf-textbox .d-eff-jp, .cf-textbox .d-eff-en { margin-bottom: 0; }
+  /* Effect box fills the card's text area (fixed like a real card's text box) and scrolls if long. */
+  .cf-textbox { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .cf-textbox .d-eff-jp, .cf-textbox .d-eff-en { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-bottom: 0; }
+  /* English on the card is hidden until English is toggled. */
+  .cardface.lang-jp .cf-en,
+  .cardface.lang-jp .cf-typeline .en { display: none; }
   .cf-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
   .cf-name { min-width: 0; }
   .cf-name .d-ruby-name { color: #1c1608; }
@@ -370,7 +379,7 @@
   /* Passcode inside the card, bottom-left, like the printed card. */
   .cf-passcode { font-family: "Cinzel", serif; font-size: 10px; letter-spacing: .14em; color: rgba(28,22,8,.5); margin-top: 12px; }
   /* Viewing toggles live just below the card (off the card face). */
-  .cf-toolbar { margin: 12px 0 2px; }
+  .cf-toolbar { grid-column: 1 / -1; margin: 0 0 4px; }  /* span above both cards so they stay aligned */
   .cf-toolbar .eff-controls { justify-content: flex-start; gap: 12px; margin-bottom: 0; }
   .d-extra { margin-top: 14px; }
   .d-extra .d-packs { border-top-color: var(--line-2); }

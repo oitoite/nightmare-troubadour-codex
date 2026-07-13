@@ -150,10 +150,10 @@ export function showDetail(c) {
     '<div class="detail"><div class="detail-h" style="--frameCol:' + fc + '"></div>' +
     '<div class="d-backbar"><button class="d-back" id="backTop" type="button">← Back to cards</button></div>' +
     '<div class="detail-b">' +
+      controlsOut +
       '<div class="d-art-col">' + artHtml + '</div>' +
       '<div class="d-info">' +
-        '<div class="cardface" style="--frameCol:' + frameHex(c) + '">' + cardInner + '</div>' +
-        controlsOut +
+        '<div class="cardface ' + (langInit === "en" ? "lang-en" : "lang-jp") + '" style="--frameCol:' + frameHex(c) + '">' + cardInner + '</div>' +
         '<div class="d-extra">' +
           packChips +
           linksHtml +
@@ -171,6 +171,8 @@ export function showDetail(c) {
       btn.addEventListener("click", () => {
         state.currentLang = btn.dataset.lang;
         host.querySelectorAll(".lang-btn").forEach((b) => b.classList.toggle("active", b === btn));
+        const cf = host.querySelector(".cardface");
+        if (cf) { cf.classList.toggle("lang-en", state.currentLang === "en"); cf.classList.toggle("lang-jp", state.currentLang !== "en"); }
         const jpEl = document.getElementById("effJp");
         const enEl = document.getElementById("effEn");
         if (jpEl) jpEl.classList.toggle("hidden", state.currentLang !== "jp");
