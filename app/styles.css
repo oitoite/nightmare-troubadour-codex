@@ -350,17 +350,6 @@
   .cf-en { font-family: "Cinzel", serif; font-size: 13px; letter-spacing: .05em; color: #3a2f16; opacity: .82; margin-top: 1px; }
   .cf-badge { flex: none; display: flex; align-items: center; }
   .cf-badge .d-attr-icon { width: 34px; height: 34px; filter: drop-shadow(0 1px 2px rgba(0,0,0,.4)); }
-  /* 魔 / 罠 card-type medallion, colored to match the card frame. */
-  .cf-medallion {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 38px; height: 38px; border-radius: 50%;
-    background: radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--frameCol, #1d9e75) 55%, #fff), var(--frameCol, #1d9e75) 78%);
-    color: #fff; font-family: "Noto Sans JP", sans-serif; font-weight: 700; font-size: 20px; line-height: 1;
-    border: 2px solid rgba(255,255,255,.6);
-    box-shadow: 0 1px 3px rgba(0,0,0,.45), inset 0 0 7px rgba(0,0,0,.28);
-    text-shadow: 0 1px 2px rgba(0,0,0,.5); cursor: pointer;
-  }
-  .cf-medallion:hover, .cf-medallion.active { filter: brightness(1.08) drop-shadow(0 0 5px var(--gold)); }
   .cf-subtype { margin: 8px 0 2px; }
   .cf-subtype .d-prop-tag { background: rgba(255,250,235,.55); color: #2a2010; border-color: rgba(0,0,0,.28); font-size: 12px; letter-spacing: .04em; }
   .cf-stars { margin: 8px 0 4px; text-align: right; }

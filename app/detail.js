@@ -1,6 +1,6 @@
 // Card detail view — a global overlay shown from any tab.
 import { state } from "./state.js";
-import { esc, frameColor, frameHex, attrIcon, typeLineJa, typeLineEn } from "./util.js";
+import { esc, frameColor, frameHex, attrIcon, ST_TYPE_ICON, typeLineJa, typeLineEn } from "./util.js";
 import { furiToggleHtml, hideVocabPop } from "./furigana.js";
 import { saveCard, isSaved } from "./mycards.js";
 import { showTabSection, switchTab, TABS } from "./tabs.js";
@@ -56,8 +56,8 @@ export function showDetail(c) {
     const kind = c.cardType === "spell" ? "魔法" : "罠";
     const propLabel = c.spellTrapTypeJa ? (c.spellTrapTypeJa + kind) : (kind + "カード");
     const propEn = c.spellTrapType ? (c.spellTrapType + " " + (c.cardType === "spell" ? "Spell" : "Trap")) : ((c.cardType === "spell" ? "Spell" : "Trap") + " Card");
-    const glyph = c.cardType === "spell" ? "魔" : "罠";
-    badgeHtml = '<span class="cf-medallion symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType || "Normal") + '" title="' + esc(propEn) + ' — tap for meaning">' + glyph + '</span>';
+    const stImg = ST_TYPE_ICON[c.cardType];
+    badgeHtml = '<img class="d-attr-icon symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType || "Normal") + '" src="' + stImg + '" alt="' + esc(propEn) + '" title="' + esc(propEn) + ' — tap for meaning">';
     subtypeHtml = '<div class="cf-subtype"><span class="d-prop-tag symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType || "Normal") + '" title="' + esc(propEn) + ' — tap for meaning">' + esc(propLabel) + '</span></div>';
   }
 
