@@ -78,18 +78,20 @@ export function showDetail(c) {
     typeJaHtml = "【" + inner + iconHtml + "】";
   }
 
-  // 5. Effect text with JP/EN toggle
+  // 5. Effect text with JP/EN toggle. Controls and body are kept separate so the
+  // type line can be positioned between them (monsters) or above them (spells).
   const hasJp = !!c.jpEff, hasEn = !!c.enEff;
   const langInit = state.currentLang || "jp";
-  let effHtml = "";
+  let effControls = "", effBody = "";
   if (hasJp || hasEn) {
-    effHtml = '<div class="eff-controls"><div class="lang-toggle">' +
+    effControls = '<div class="eff-controls"><div class="lang-toggle">' +
       '<button class="lang-btn' + (langInit === "jp" ? " active" : "") + '" data-lang="jp">日本語</button>' +
       '<button class="lang-btn' + (langInit === "en" ? " active" : "") + '" data-lang="en">English</button>' +
       '</div>' + (hasJp ? furiToggleHtml() : '') + '</div>';
-    if (hasJp) effHtml += '<div class="d-eff-jp' + (langInit !== "jp" ? " hidden" : "") + '" id="effJp">' + buildJpEffInner(c, hasEn) + '</div>';
-    if (hasEn) effHtml += '<div class="d-eff-en' + (langInit !== "en" ? " hidden" : "") + '" id="effEn">' + esc(c.enEff) + '</div>';
+    if (hasJp) effBody += '<div class="d-eff-jp' + (langInit !== "jp" ? " hidden" : "") + '" id="effJp">' + buildJpEffInner(c, hasEn) + '</div>';
+    if (hasEn) effBody += '<div class="d-eff-en' + (langInit !== "en" ? " hidden" : "") + '" id="effEn">' + esc(c.enEff) + '</div>';
   }
+  const typeLineBlock = '<div class="cf-typeline' + (isMon ? '' : ' cf-typeline-top') + '"><div class="jp">' + typeJaHtml + '</div><div class="en">' + esc(typeEn) + '</div></div>';
 
   // 6. ATK / DEF
   let statsHtml = "";
@@ -126,22 +128,32 @@ export function showDetail(c) {
   }
   linksHtml += "</div>";
 
+  // Card-face body, laid out to mimic the real card:
+  //  Spell/Trap: centered type line under the name, then the effect.
+  //  Monster: type line sits just above the effect, with ATK/DEF as the footer.
+  const cfTop = '<div class="cf-top">' +
+    '<div class="cf-name">' + nameHtml + '<div class="cf-en">' + esc(c.en || "") + '</div></div>' +
+    (badgeHtml ? '<div class="cf-badge">' + badgeHtml + '</div>' : '') +
+    '</div>';
+  const hasText = !!(effControls || effBody);
+  let cardInner;
+  if (isMon) {
+    const textbox = hasText
+      ? '<div class="cf-textbox">' + effControls + typeLineBlock + effBody + '</div>'
+      : typeLineBlock;
+    cardInner = cfTop + starsHtml + textbox + statsHtml;
+  } else {
+    cardInner = cfTop + typeLineBlock +
+      (hasText ? '<div class="cf-textbox">' + effControls + effBody + '</div>' : '');
+  }
+
   host.innerHTML =
     '<div class="detail"><div class="detail-h" style="--frameCol:' + fc + '"></div>' +
     '<div class="d-backbar"><button class="d-back" id="backTop" type="button">← Back to cards</button></div>' +
     '<div class="detail-b">' +
       '<div class="d-art-col">' + artHtml + '</div>' +
       '<div class="d-info">' +
-        '<div class="cardface" style="--frameCol:' + frameHex(c) + '">' +
-          '<div class="cf-top">' +
-            '<div class="cf-name">' + nameHtml + '<div class="cf-en">' + esc(c.en || "") + '</div></div>' +
-            (badgeHtml ? '<div class="cf-badge">' + badgeHtml + '</div>' : '') +
-          '</div>' +
-          starsHtml +
-          '<div class="cf-typeline"><div class="jp">' + typeJaHtml + '</div><div class="en">' + esc(typeEn) + '</div></div>' +
-          (effHtml ? '<div class="cf-textbox">' + effHtml + '</div>' : '') +
-          statsHtml +
-        '</div>' +
+        '<div class="cardface" style="--frameCol:' + frameHex(c) + '">' + cardInner + '</div>' +
         '<div class="d-extra">' +
           passcodeHtml +
           packChips +

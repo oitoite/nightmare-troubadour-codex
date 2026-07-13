@@ -356,10 +356,12 @@
   .cf-stars { margin: 8px 0 4px; text-align: right; }
   .cf-stars .d-level { color: #d9822b; font-size: 16px; letter-spacing: 1.5px; }
   .cf-stars .d-level-num { color: #3a2f16; opacity: .7; }
-  .cf-typeline { margin: 9px 0 10px; padding: 6px 11px; background: rgba(255,250,235,.5); border-radius: 4px; border: 1px solid rgba(0,0,0,.16); }
-  .cf-typeline .jp { font-size: 14px; color: #241c0c; font-weight: 700; }
+  /* Type line as a clean line (like the printed card), not a boxed panel. */
+  .cf-typeline { margin: 2px 0 7px; }
+  .cf-typeline .jp { font-size: 15px; color: #241c0c; font-weight: 700; letter-spacing: .02em; }
   .cf-typeline .jp ruby rt { font-size: 9px; color: #6a5628; opacity: .95; }
-  .cf-typeline .en { font-size: 11px; color: #5a4a24; font-family: "Cinzel", serif; margin-top: 1px; }
+  .cf-typeline .en { font-size: 10.5px; color: #5a4a24; font-family: "Cinzel", serif; margin-top: 0; letter-spacing: .04em; }
+  .cf-typeline-top { text-align: center; margin: 3px 0 10px; }  /* Spell/Trap: centered under the name */
   .cf-footer { display: flex; justify-content: flex-end; gap: 24px; margin-top: 12px; padding-top: 8px; border-top: 2px solid rgba(0,0,0,.26); }
   .cf-ad { font-family: "Cinzel", serif; font-weight: 700; font-size: 21px; color: #1c1608; letter-spacing: .02em; }
   .cf-ad b { color: #8a1a1a; margin: 0 1px; }
