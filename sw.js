@@ -1,6 +1,6 @@
 /* Nightmare Troubadour Card Codex — offline service worker.
    Bump CACHE when the app shell or data changes to force a refresh. */
-var CACHE = "nt-codex-v29";
+var CACHE = "nt-codex-v30";
 var SHELL = [
   "./", "./index.html",
   "./app/styles.css",
@@ -33,8 +33,10 @@ self.addEventListener("fetch", function (e) {
 
   if (sameOrigin) {
     // App shell + data: network-first so updates land online, cache fallback offline.
+    // Use no-cache so the network fetch bypasses the HTTP cache (GitHub Pages sets a
+    // ~10-min max-age); otherwise the worker can serve stale modules after a deploy.
     e.respondWith(
-      fetch(req).then(function (res) {
+      fetch(req, { cache: "no-cache" }).then(function (res) {
         var copy = res.clone();
         caches.open(CACHE).then(function (c) { c.put(req, copy); });
         return res;
