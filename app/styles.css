@@ -361,7 +361,7 @@
   .cf-typeline .jp { font-size: 15px; color: #241c0c; font-weight: 700; letter-spacing: .02em; }
   .cf-typeline .jp ruby rt { font-size: 9px; color: #6a5628; opacity: .95; }
   .cf-typeline .en { font-size: 10.5px; color: #5a4a24; font-family: "Cinzel", serif; margin-top: 0; letter-spacing: .04em; }
-  .cf-typeline-top { text-align: center; margin: 3px 0 10px; }  /* Spell/Trap: centered under the name */
+  .cf-typeline-top { text-align: right; margin: -2px 0 12px; }  /* Spell/Trap: right-aligned under the attribute medallion */
   .cf-footer { display: flex; justify-content: flex-end; gap: 24px; margin-top: 12px; padding-top: 8px; border-top: 2px solid rgba(0,0,0,.26); }
   .cf-ad { font-family: "Cinzel", serif; font-weight: 700; font-size: 21px; color: #1c1608; letter-spacing: .02em; }
   .cf-ad b { color: #8a1a1a; margin: 0 1px; }
