@@ -17,8 +17,8 @@ export const attrIcon = (a) =>
 // Authentic Spell / Trap card-type symbol (the 魔 / 罠 corner medallion), the
 // matched set to the monster attribute icons. On every spell/trap card.
 export const ST_TYPE_ICON = {
-  spell: "https://ms.yugipedia.com/0/09/SPELL.svg",
-  trap: "https://ms.yugipedia.com/2/28/TRAP.svg",
+  spell: "https://ms.yugipedia.com/1/1a/SPELL-JP.svg",
+  trap: "https://ms.yugipedia.com/a/aa/TRAP-JP.svg",
 };
 
 export const FRAMEVAR = { normal: "--f-normal", effect: "--f-effect", ritual: "--f-ritual", fusion: "--f-fusion", synchro: "--f-synchro", xyz: "--f-xyz", link: "--f-link", spell: "--f-spell", trap: "--f-trap" };
