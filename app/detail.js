@@ -1,6 +1,6 @@
 // Card detail view — a global overlay shown from any tab.
 import { state } from "./state.js";
-import { esc, frameColor, frameHex, attrIcon, stIcon, typeLineJa, typeLineEn } from "./util.js";
+import { esc, frameColor, frameHex, attrIcon, typeLineJa, typeLineEn } from "./util.js";
 import { furiToggleHtml, hideVocabPop } from "./furigana.js";
 import { saveCard, isSaved } from "./mycards.js";
 import { showTabSection, switchTab, TABS } from "./tabs.js";
@@ -41,8 +41,10 @@ export function showDetail(c) {
     : '<span class="d-ruby-name">' + esc(c.ja || c.en || "—") + '</span>';
 
   // 3. Attribute + level / property row
-  // Attribute icon / spell-trap badge (top-right of the card), and level stars (below name).
-  let badgeHtml = "", starsHtml = "";
+  // Top-right badge: monsters show the attribute icon; spells/traps show the
+  // 魔/罠 card-type medallion (on every spell/trap, matching real cards). Below
+  // the name: level stars (monsters) or the sub-type tag (spells/traps).
+  let badgeHtml = "", starsHtml = "", subtypeHtml = "";
   if (isMon) {
     if (c.attribute) badgeHtml = '<img class="d-attr-icon symdef" data-symkind="attr" data-symkey="' + esc(c.attribute) + '" src="' + attrIcon(c.attribute) + '" alt="' + esc(c.attribute.toUpperCase()) + '" title="' + esc(c.attribute.toUpperCase()) + ' — tap for meaning">';
     if (c.level != null) {
@@ -54,10 +56,9 @@ export function showDetail(c) {
     const kind = c.cardType === "spell" ? "魔法" : "罠";
     const propLabel = c.spellTrapTypeJa ? (c.spellTrapTypeJa + kind) : (kind + "カード");
     const propEn = c.spellTrapType ? (c.spellTrapType + " " + (c.cardType === "spell" ? "Spell" : "Trap")) : ((c.cardType === "spell" ? "Spell" : "Trap") + " Card");
-    const propIcon = stIcon(c.spellTrapType);
-    badgeHtml = propIcon
-      ? '<img class="d-attr-icon symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType) + '" src="' + propIcon + '" alt="' + esc(propEn) + '" title="' + esc(propEn) + ' — tap for meaning">'
-      : '<span class="d-prop-tag symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType || "Normal") + '" title="' + esc(propEn) + ' — tap for meaning">' + esc(propLabel) + '</span>';
+    const glyph = c.cardType === "spell" ? "魔" : "罠";
+    badgeHtml = '<span class="cf-medallion symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType || "Normal") + '" title="' + esc(propEn) + ' — tap for meaning">' + glyph + '</span>';
+    subtypeHtml = '<div class="cf-subtype"><span class="d-prop-tag symdef" data-symkind="' + c.cardType + '" data-symkey="' + esc(c.spellTrapType || "Normal") + '" title="' + esc(propEn) + ' — tap for meaning">' + esc(propLabel) + '</span></div>';
   }
 
   // 4. Type line
@@ -123,7 +124,7 @@ export function showDetail(c) {
             '<div class="cf-name">' + nameHtml + '<div class="cf-en">' + esc(c.en || "") + '</div></div>' +
             (badgeHtml ? '<div class="cf-badge">' + badgeHtml + '</div>' : '') +
           '</div>' +
-          starsHtml +
+          starsHtml + subtypeHtml +
           '<div class="cf-typeline"><div class="jp">' + (c.typeLineJaHtml || esc(typeJa)) + '</div><div class="en">' + esc(typeEn) + '</div></div>' +
           (effHtml ? '<div class="cf-textbox">' + effHtml + '</div>' : '') +
           statsHtml +
