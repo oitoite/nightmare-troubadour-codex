@@ -26,6 +26,7 @@ struct PacksView: View {
             .padding(16)
         }
         .navigationTitle("Packs")
+        .navigationBarTitleDisplayMode(.inline)
         .codexScreen()
     }
 }

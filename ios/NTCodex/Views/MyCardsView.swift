@@ -19,6 +19,7 @@ struct MyCardsView: View {
             }
         }
         .navigationTitle("My Cards")
+        .navigationBarTitleDisplayMode(.inline)
         .codexScreen()
     }
 

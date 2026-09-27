@@ -16,6 +16,7 @@ struct DictionaryView: View {
             }
         }
         .navigationTitle("Dictionary")
+        .navigationBarTitleDisplayMode(.inline)
         .codexScreen()
         .task(id: mode) {
             guard let db = model.db else { return }
