@@ -86,9 +86,11 @@ public struct CardDatabase: Sendable {
     /// Loads from this package's bundled `Resources/` directory.
     public static func loadBundled() throws -> CardDatabase {
         func data(_ name: String) -> Data? {
-            guard let url = Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Resources") else {
-                return nil
-            }
+            // Processed resources land in the bundle root; fall back to the
+            // subdirectory layout in case the package is built with `.copy`.
+            let url = Bundle.module.url(forResource: name, withExtension: "json")
+                ?? Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Resources")
+            guard let url else { return nil }
             return try? Data(contentsOf: url)
         }
         guard let cards = data("cards") else { throw DatabaseError.missingResource("cards.json") }

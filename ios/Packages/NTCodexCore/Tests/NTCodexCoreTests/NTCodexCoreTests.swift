@@ -80,7 +80,8 @@ final class DatabaseTests: XCTestCase {
     }
 
     func testMissingPacksFallsBackToCardPacks() throws {
-        let cardsURL = try XCTUnwrap(Bundle.module.url(forResource: "cards", withExtension: "json", subdirectory: "Resources"))
+        let cardsURL = try XCTUnwrap(Bundle.module.url(forResource: "cards", withExtension: "json")
+            ?? Bundle.module.url(forResource: "cards", withExtension: "json", subdirectory: "Resources"))
         let db = try CardDatabase.load(cardsData: Data(contentsOf: cardsURL), packsData: nil, vocabData: nil, gameTermsData: nil)
         XCTAssertFalse(db.packs.isEmpty)
         XCTAssertTrue(db.packs.contains { $0.name == "Miracle of Nature" })

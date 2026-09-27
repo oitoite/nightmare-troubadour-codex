@@ -11,7 +11,7 @@ let package = Package(
     targets: [
         .target(
             name: "NTCodexCore",
-            resources: [.copy("Resources")]
+            resources: [.process("Resources")]
         ),
         .testTarget(
             name: "NTCodexCoreTests",
