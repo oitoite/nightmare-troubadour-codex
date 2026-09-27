@@ -4,3 +4,10 @@ node_modules/
 *.mjs
 CLAUDE.md
 .DS_Store
+
+# iOS / Swift
+ios/**/xcuserdata/
+ios/**/.build/
+ios/**/.swiftpm/
+ios/**/DerivedData/
+ios/**/*.xcworkspace/xcuserdata/
