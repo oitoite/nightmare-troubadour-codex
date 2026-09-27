@@ -31,7 +31,7 @@ enum FontRegistrar {
         }
         for url in urls {
             // Errors here are expected when UIAppFonts already registered the font.
-            CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+            _ = CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
         }
     }
 }

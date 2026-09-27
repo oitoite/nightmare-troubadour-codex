@@ -31,7 +31,7 @@ jobs:
           xcodebuild -project NTCodex.xcodeproj -scheme NTCodex \
             -destination 'generic/platform=iOS Simulator' \
             -configuration Debug CODE_SIGNING_ALLOWED=NO \
-            build | xcpretty && exit ${PIPESTATUS[0]}
+            -skipPackagePluginValidation build
       - name: Core tests via Xcode
         working-directory: ios/Packages/NTCodexCore
-        run: xcodebuild -scheme NTCodexCore -destination 'platform=macOS' test | xcpretty && exit ${PIPESTATUS[0]}
+        run: xcodebuild -scheme NTCodexCore -destination 'platform=macOS' test

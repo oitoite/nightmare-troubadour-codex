@@ -23,7 +23,8 @@ actor ImageLoader {
         if let img = cache.object(forKey: url as NSURL) { return img }
         if let task = inFlight[url] { return await task.value }
         let task = Task<UIImage?, Never> {
-            guard let (data, response) = try? await session.data(from: url) else { return nil }
+            guard let result = try? await session.data(from: url) else { return nil }
+            let (data, response) = result
             if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) { return nil }
             guard let img = UIImage(data: data) else { return nil }
             return img
@@ -40,11 +41,17 @@ actor ImageLoader {
 /// or when the fetch fails.
 struct RemoteImage<Placeholder: View>: View {
     let url: URL?
-    var contentMode: ContentMode = .fit
-    @ViewBuilder var placeholder: () -> Placeholder
+    let contentMode: ContentMode
+    let placeholder: () -> Placeholder
 
     @State private var image: UIImage?
     @State private var failed = false
+
+    init(url: URL?, contentMode: ContentMode = .fit, @ViewBuilder placeholder: @escaping () -> Placeholder) {
+        self.url = url
+        self.contentMode = contentMode
+        self.placeholder = placeholder
+    }
 
     var body: some View {
         Group {
